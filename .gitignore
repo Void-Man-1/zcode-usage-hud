@@ -14,6 +14,10 @@ ZCode-Usage-HUD.exe
 # Security-scanner local state
 .mimosa/
 
+# Python development artifacts
+__pycache__/
+*.py[cod]
+
 # Graph analysis scratch files
 .graphify_*.json
 graphify-out/
