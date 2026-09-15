@@ -294,7 +294,7 @@ func TestStackAboveRectNoObstacles(t *testing.T) {
 
 func TestStackAboveRectCollapsedCompanion(t *testing.T) {
 	// Both strips default to the same taskbar rectangle: the ZCode strip
-	// must move directly above the Codex strip with a gap.
+	// must move directly above the companion strip with a gap.
 	base := RECT{Left: 1680, Top: 1000, Right: 1920, Bottom: 1040}
 	codex := RECT{Left: 1680, Top: 1000, Right: 1920, Bottom: 1040}
 	got := stackAboveRect(base, []RECT{codex}, 4, 0)

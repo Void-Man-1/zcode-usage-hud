@@ -23,7 +23,7 @@
 ZCode Usage HUD is a small Windows companion app for keeping an eye on your
 ZCode usage without opening the ZCode app itself. It stays on top of other
 windows, shows how much of each token pool remains, and can sit neatly above
-the installed Codex Usage HUD.
+an installed companion HUD.
 
 **In one sentence:** ZCode Usage HUD is an independent Windows desktop
 application that displays ZCode/Z.AI token quotas, reset times, promotions,
@@ -56,9 +56,9 @@ build your own version, redistribute it, and contribute improvements. The
 installer is only one convenient way to use it—you can also build the HUD
 yourself from the Go source.
 
-This project is **not affiliated with, sponsored by, or endorsed by ZCode,
-Z.AI, or OpenAI**. Those names are referenced only to describe the service
-this independent companion works with. The upstream service and its APIs may
+This project is **not affiliated with, sponsored by, or endorsed by ZCode or
+Z.AI**. Those names are referenced only to describe the service this
+independent companion works with. The upstream service and its APIs may
 change independently of this project.
 
 > **Compatibility note:** this companion depends on the endpoints and response
@@ -95,7 +95,7 @@ remaining percentage without taking over the desktop.
 
 - Click the compact panel to expand it.
 - Drag the expanded panel to reposition it; use **Snap** in the tray menu to
-  reattach it above the Codex HUD or to the notification-area corner.
+  reattach it above a companion HUD or to the notification-area corner.
 - The tray menu provides **Refresh now**, **Snap**, **Open ZCode folder**,
   **Start with Windows (compact)**, sign-in/sign-out, and **Exit**.
 - The HUD refreshes account data about once per minute and repaints countdowns
@@ -214,7 +214,7 @@ source of the account and billing data.
 **Is it affiliated with ZCode or Z.AI?**
 
 No. It is an independent, community-maintained open-source project and is not
-affiliated with, sponsored by, or endorsed by ZCode, Z.AI, or OpenAI.
+affiliated with, sponsored by, or endorsed by ZCode or Z.AI.
 
 **Can I fork and change it?**
 

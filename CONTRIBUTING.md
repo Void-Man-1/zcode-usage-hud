@@ -27,6 +27,6 @@ privacy behavior changes.
 
 ## Scope
 
-This project is not affiliated with ZCode, Z.AI, or OpenAI. Contributions must
-not imply endorsement by those organizations or claim access to private
-upstream implementation details.
+This project is not affiliated with ZCode or Z.AI. Contributions must not
+imply endorsement by those organizations or claim access to private upstream
+implementation details.

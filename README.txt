@@ -4,11 +4,9 @@ ZCode Usage HUD v1.2.0
 OPEN SOURCE AND INDEPENDENT
 This project is released under the MIT License. You may fork, modify, build,
 redistribute, and contribute to it. It is not affiliated with, sponsored by,
-or endorsed by ZCode, Z.AI, or OpenAI.
+or endorsed by ZCode or Z.AI.
 
-Codex-style console for ZCode. Same always-on-top HUD concept as
-Codex Usage HUD v3.3.x, but it reads ZCode's own data sources instead
-of the Codex app-server:
+Always-on-top ZCode usage HUD that reads ZCode's own data sources:
 
 CONNECTED / SYNCED
   dot + email + active plan name, footer with sync time.
@@ -123,7 +121,7 @@ SIGN-OUT
   The ZCode app's separate session is never touched.
   ZCode-Usage-HUD.exe --logout does the same headlessly.
 
-BEHAVIOR (mirrors Codex HUD)
+BEHAVIOR
   Minimize collapses to a compact panel listing EVERY pool as a
   stacked full-width row, no abbreviations: the full model name on the
   left with its quota kind right-aligned — "PROMO" in blue for one-time
@@ -140,9 +138,8 @@ BEHAVIOR (mirrors Codex HUD)
   (one-time pools never count as refill sources). Signed-out state
   distinguishes "SIGN IN" from "OFFLINE" (API unreachable).
   Close exits.
-  Codex-aware stacking everywhere: the collapsed strip parks directly
-  above the installed Codex HUD window (CodexUsageHUDV3, incl. its
-  preview/legacy classes) instead of overlapping it, and the snapped
+  Companion-aware stacking everywhere: the collapsed strip parks directly
+  above a detected companion HUD window instead of overlapping it, and the snapped
   expanded panel stacks above the companion too — both default to the
   same notification-area corner. A 1s restack follows the companion
   when it appears, moves, expands, collapses, or exits in either mode;

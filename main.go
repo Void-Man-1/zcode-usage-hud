@@ -264,8 +264,8 @@ var (
 	expandedRectValid bool
 	expandedRect      RECT
 
-	// Companion HUD window classes (the installed Codex HUD and its
-	// legacy/preview builds). The ZCode collapsed strip stacks above a
+	// Companion HUD window classes and their legacy/preview builds.
+	// The ZCode collapsed strip stacks above a
 	// visible companion instead of overlapping it, since both HUDs
 	// default to the same notification-area corner.
 	companionHUDClasses = []string{"CodexUsageHUDV3", "CodexUsageHUDPreviewV3", "CodexLimitHUDV2"}
@@ -473,7 +473,7 @@ func balanceUsedPercent(b Balance) float64 {
 	return p
 }
 
-// computeUnlock mirrors the Codex HUD semantics for daily token buckets:
+// computeUnlock uses companion-style daily token bucket semantics:
 // locked only when every real bucket (total > 0) is fully exhausted.
 // Zero-total placeholder buckets neither count as exhausted nor keep the
 // HUD available, and the unlock time comes from recurring buckets only —
@@ -3958,7 +3958,7 @@ func collapsedGeometryEx() (x, y, w, h int32, companions []RECT) {
 	h = collapsedPanelHeight(collapsedPreviewRowCount(snap), taskbarH)
 	x = wa.Right - w
 	y = wa.Bottom - h
-	// The installed Codex HUD parks its own collapsed strip on this exact
+	// A companion HUD may park its own collapsed strip on this exact
 	// rectangle. Stack above any visible companion window instead of
 	// covering it.
 	companions = visibleCompanionRects()
@@ -3968,7 +3968,7 @@ func collapsedGeometryEx() (x, y, w, h int32, companions []RECT) {
 }
 
 // visibleCompanionRects returns the screen rects of visible companion HUD
-// windows (Codex HUD builds). Hidden or degenerate windows are ignored.
+// windows. Hidden or degenerate windows are ignored.
 func visibleCompanionRects() []RECT {
 	var out []RECT
 	for _, class := range companionHUDClasses {
@@ -4110,7 +4110,7 @@ func snapToCorner() {
 	procSystemParametersInfoW.Call(SPI_GETWORKAREA, 0, uintptr(unsafe.Pointer(&wa)), 0)
 	x := wa.Right - winWidth - 10
 	y := wa.Bottom - winHeight - 10
-	// Expanded mode stacks too: the Codex HUD (strip or full panel) sits
+	// Expanded mode stacks too: a companion HUD (strip or full panel) sits
 	// in the same notification-area corner, and covering it hides the
 	// other tool entirely.
 	base := RECT{Left: x, Top: y, Right: x + winWidth, Bottom: y + winHeight}
