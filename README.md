@@ -29,10 +29,18 @@ clear view of:
 - accepted promotions that have not activated yet;
 - Windows notifications for new promotions and expiring one-time pools.
 
-## Preview
+## Screenshots
+
+### Sign-in
 
 <p align="center">
-  <img src="docs/screenshots/zcode-usage-hud-preview.png" alt="ZCode Usage HUD showing separate daily and promotional token buckets" width="680">
+  <img src="docs/screenshots/zcode-usage-hud-sign-in.png" alt="ZCode Usage HUD sign-in panel" width="720">
+</p>
+
+### Compact quota view
+
+<p align="center">
+  <img src="docs/screenshots/zcode-usage-hud-preview.png" alt="ZCode Usage HUD showing separate daily and promotional token buckets" width="340">
 </p>
 
 It has its own encrypted local credential store and starts signed out on a
