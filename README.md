@@ -9,7 +9,6 @@
 <p align="center">
   <a href="https://github.com/Void-Man-1/zcode-usage-hud/releases"><img src="https://img.shields.io/github/v/release/Void-Man-1/zcode-usage-hud?display_name=tag&sort=semver&logo=github" alt="Latest release"></a>
   <a href="https://github.com/Void-Man-1/zcode-usage-hud/releases"><img src="https://img.shields.io/github/downloads/Void-Man-1/zcode-usage-hud/total?logo=github" alt="Total downloads"></a>
-  <a href="https://github.com/Void-Man-1/zcode-usage-hud"><img src="https://img.shields.io/github/repo-size/Void-Man-1/zcode-usage-hud?logo=github" alt="Repository size"></a>
   <img src="https://img.shields.io/badge/platform-Windows%20x86--64-0078d4?logo=windows&logoColor=white" alt="Windows x86-64">
   <img src="https://img.shields.io/badge/Go-1.23-00ADD8?logo=go&logoColor=white" alt="Go 1.23">
 </p>
@@ -28,6 +27,48 @@ clear view of:
 - live reset, activation, expiry, and subscription countdowns;
 - accepted promotions that have not activated yet;
 - Windows notifications for new promotions and expiring one-time pools.
+
+> **Unofficial companion.** This project is not affiliated with or endorsed by
+> ZCode, Z.AI, or OpenAI. It depends on the endpoints and response formats
+> used by the current ZCode desktop app, which may change without notice.
+
+## First launch
+
+1. Install the latest Windows installer from the download button above.
+2. Open **ZCode Usage HUD** from the Start Menu or desktop shortcut.
+3. Select **Sign in with Google**. The HUD opens the Z.AI login page in your
+   browser and waits for the completed sign-in.
+4. After the first refresh, the expanded panel shows every quota bucket
+   reported for the account.
+
+The HUD starts signed out on purpose. If ZCode is already signed in, you can
+choose **Use ZCode app's session** from the tray menu, but that is an explicit
+copy into the HUD's separate credential store—not automatic session sharing.
+
+## Reading the HUD
+
+Each token bucket is shown independently because an account can have several
+quotas for the same model. A regular `DAILY`, `WEEKLY`, or `MONTHLY` bucket
+refills at its period end. A `PROMO` bucket is a one-time grant: it expires
+instead of refilling, and unused tokens are lost.
+
+The expanded view is the detailed dashboard. It includes bucket-level usage,
+pending promotions, refill or activation countdowns, account totals, plan
+status, and subscription information. The compact view is designed for
+leaving on screen: it stacks one full-width row per bucket and shows the
+remaining percentage without taking over the desktop.
+
+## Controls and notifications
+
+- Click the compact panel to expand it.
+- Drag the expanded panel to reposition it; use **Snap** in the tray menu to
+  reattach it above the Codex HUD or to the notification-area corner.
+- The tray menu provides **Refresh now**, **Snap**, **Open ZCode folder**,
+  **Start with Windows (compact)**, sign-in/sign-out, and **Exit**.
+- The HUD refreshes account data about once per minute and repaints countdowns
+  every second.
+- New promotions produce one tray notification. One-time pools with tokens
+  remaining produce one expiry warning during their final 24 hours.
 
 ## Screenshots
 
@@ -91,6 +132,24 @@ session data live under `%LOCALAPPDATA%\ZCode Usage HUD`.
 The Python files in this repository are development and investigation tools
 for probing the public ZCode endpoints; they are not compiled into the HUD.
 
+## Troubleshooting
+
+**The HUD says SIGN IN.** Complete the browser flow from the HUD, or use the
+tray menu's **Use ZCode app's session** action. The HUD does not read the
+ZCode app's credentials automatically.
+
+**The HUD says OFFLINE.** Check connectivity and try **Refresh now**. The
+service response, local credentials, and diagnostic details are recorded in
+`%LOCALAPPDATA%\ZCode Usage HUD\hud.log`; token-shaped values are masked.
+
+**The HUD shows no new promotion.** Promotions are detected on refresh and
+the first run silently establishes a baseline. A promotion already present
+before the first successful run will not generate a historical notification.
+
+**The installer will not replace a running copy.** Exit the HUD from its tray
+menu and run the installer again. The installer is per-user and does not
+require administrator access.
+
 ## Privacy and security
 
 Credentials are stored in an AES-GCM `enc:v1` envelope in the HUD's own local
@@ -98,3 +157,10 @@ data directory. Log output masks token-shaped values. The app reads the
 device identifier from ZCode telemetry state, but does not use the ZCode app's
 credentials unless the user explicitly chooses **Use ZCode app's session**.
 Deleting `%LOCALAPPDATA%\ZCode Usage HUD` removes the saved session and logs.
+
+## Project status
+
+The current release is a finished Windows x86-64 build with a per-user
+installer. The repository also includes the Go source, unit tests, installer
+script, and small Python utilities used while investigating the ZCode API.
+The investigation scripts are not part of the shipped executable.
