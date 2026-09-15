@@ -25,9 +25,9 @@ ZCode usage without opening the ZCode app itself. It stays on top of other
 windows, shows how much of each token pool remains, and can sit neatly above
 the installed Codex Usage HUD.
 
-**Search terms:** ZCode usage monitor, Z.AI token quota tracker, GLM token
-dashboard, Windows quota HUD, ZCode promotion alerts, and desktop token
-usage monitor.
+**In one sentence:** ZCode Usage HUD is an independent Windows desktop
+application that displays ZCode/Z.AI token quotas, reset times, promotions,
+and account status in a compact always-on-top dashboard.
 
 The HUD reads ZCode's billing and account APIs, then turns the response into a
 clear view of:
@@ -38,6 +38,15 @@ clear view of:
 - live reset, activation, expiry, and subscription countdowns;
 - accepted promotions that have not activated yet;
 - Windows notifications for new promotions and expiring one-time pools.
+
+| At a glance | Details |
+| --- | --- |
+| Platform | Windows x86-64 |
+| License | MIT; forkable and modifiable |
+| Distribution | Per-user installer or build from source |
+| Authentication | Browser-based Google flow or explicit session import |
+| Data model | Separate recurring and one-time token buckets |
+| Network behavior | HTTPS requests to ZCode/Z.AI endpoints; no telemetry |
 
 ## Open source
 
@@ -189,6 +198,46 @@ before the first successful run will not generate a historical notification.
 menu and run the installer again. The installer is per-user and does not
 require administrator access.
 
+## Frequently asked questions
+
+**What is ZCode Usage HUD?**
+
+It is a Windows usage monitor for ZCode/Z.AI accounts. It displays token
+balances, quota periods, promotions, refill times, expiry warnings, and plan
+information without requiring the ZCode window to stay open.
+
+**Does it replace ZCode?**
+
+No. It is a companion dashboard, not a replacement client. ZCode remains the
+source of the account and billing data.
+
+**Is it affiliated with ZCode or Z.AI?**
+
+No. It is an independent, community-maintained open-source project and is not
+affiliated with, sponsored by, or endorsed by ZCode, Z.AI, or OpenAI.
+
+**Can I fork and change it?**
+
+Yes. The MIT License permits forking, modification, private or public builds,
+redistribution, and contribution, subject to the license terms.
+
+**What is a token bucket?**
+
+A bucket is one separate quota returned by the service. An account can have
+multiple buckets for the same model, such as a recurring daily quota and a
+one-time promotional grant.
+
+**Does a promotional bucket refill?**
+
+No. One-time promotional buckets expire instead of refilling. The HUD labels
+them `PROMO` and warns when unused tokens are approaching expiry.
+
+**Does the HUD send telemetry?**
+
+No. It sends account requests only to the hard-coded ZCode and Z.AI HTTPS
+endpoints needed for sign-in and usage data. It has no analytics or update
+service.
+
 ## Privacy and security
 
 Credentials are stored in an AES-GCM `enc:v1` envelope in the HUD's own local
@@ -209,4 +258,5 @@ The investigation scripts are not part of the shipped executable.
 - [Official ZCode / Z.AI site](https://z.ai)
 - [Z.AI on X](https://x.com/zai_org)
 - [Releases and installer downloads](https://github.com/Void-Man-1/zcode-usage-hud/releases)
+- [Contributing guide](CONTRIBUTING.md)
 - [Report a bug](https://github.com/Void-Man-1/zcode-usage-hud/issues/new)
