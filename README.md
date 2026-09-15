@@ -13,7 +13,7 @@
 
 <p align="center">
   <a href="https://github.com/Void-Man-1/zcode-usage-hud/stargazers">
-    <img src="https://img.shields.io/github/stars/Void-Man-1/zcode-usage-hud?style=for-the-badge&label=Star%20this%20project&logo=github&logoColor=white&color=gold" alt="Star this project on GitHub">
+    <img src="https://img.shields.io/github/stars/Void-Man-1/zcode-usage-hud?style=for-the-badge&label=GitHub%20stars&logo=github&logoColor=white&color=gold" alt="GitHub stars">
   </a>
 </p>
 
