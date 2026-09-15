@@ -12,6 +12,12 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/Void-Man-1/zcode-usage-hud/stargazers">
+    <img src="https://img.shields.io/github/stars/Void-Man-1/zcode-usage-hud?style=for-the-badge&label=Star%20this%20project&logo=github&logoColor=white&color=gold" alt="Star this project on GitHub">
+  </a>
+</p>
+
+<p align="center">
   <a href="https://github.com/Void-Man-1/zcode-usage-hud/releases"><img src="https://img.shields.io/github/v/release/Void-Man-1/zcode-usage-hud?display_name=tag&sort=semver&logo=github" alt="Latest release"></a>
   <a href="https://github.com/Void-Man-1/zcode-usage-hud/releases"><img src="https://img.shields.io/github/downloads/Void-Man-1/zcode-usage-hud/total?logo=github" alt="Total downloads"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/Void-Man-1/zcode-usage-hud" alt="MIT License"></a>
