@@ -1,6 +1,11 @@
 ZCode Usage HUD v1.2.0
 ======================
 
+OPEN SOURCE AND INDEPENDENT
+This project is released under the MIT License. You may fork, modify, build,
+redistribute, and contribute to it. It is not affiliated with, sponsored by,
+or endorsed by ZCode, Z.AI, or OpenAI.
+
 Codex-style console for ZCode. Same always-on-top HUD concept as
 Codex Usage HUD v3.3.x, but it reads ZCode's own data sources instead
 of the Codex app-server:

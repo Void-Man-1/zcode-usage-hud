@@ -15,6 +15,7 @@
   <a href="https://github.com/Void-Man-1/zcode-usage-hud/releases"><img src="https://img.shields.io/github/v/release/Void-Man-1/zcode-usage-hud?display_name=tag&sort=semver&logo=github" alt="Latest release"></a>
   <a href="https://github.com/Void-Man-1/zcode-usage-hud/releases"><img src="https://img.shields.io/github/downloads/Void-Man-1/zcode-usage-hud/total?logo=github" alt="Total downloads"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/Void-Man-1/zcode-usage-hud" alt="MIT License"></a>
+  <a href="https://github.com/Void-Man-1/zcode-usage-hud/fork"><img src="https://img.shields.io/badge/open%20source-fork%20%26%20modify-2ea44f?logo=github" alt="Open source project"></a>
   <img src="https://img.shields.io/badge/platform-Windows%20x86--64-0078d4?logo=windows&logoColor=white" alt="Windows x86-64">
   <img src="https://img.shields.io/badge/Go-1.23-00ADD8?logo=go&logoColor=white" alt="Go 1.23">
 </p>
@@ -38,9 +39,22 @@ clear view of:
 - accepted promotions that have not activated yet;
 - Windows notifications for new promotions and expiring one-time pools.
 
-> **Unofficial companion.** This project is not affiliated with or endorsed by
-> ZCode, Z.AI, or OpenAI. It depends on the endpoints and response formats
-> used by the current ZCode desktop app, which may change without notice.
+## Open source
+
+This is an independent, open-source project released under the [MIT
+License](LICENSE). You are free to fork it, inspect the source, modify it,
+build your own version, redistribute it, and contribute improvements. The
+installer is only one convenient way to use it—you can also build the HUD
+yourself from the Go source.
+
+This project is **not affiliated with, sponsored by, or endorsed by ZCode,
+Z.AI, or OpenAI**. Those names are referenced only to describe the service
+this independent companion works with. The upstream service and its APIs may
+change independently of this project.
+
+> **Compatibility note:** this companion depends on the endpoints and response
+> formats used by the current ZCode desktop app, which may change without
+> notice.
 
 ## First launch
 
