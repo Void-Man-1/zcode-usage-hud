@@ -37,6 +37,12 @@ clear view of:
   <img src="docs/screenshots/zcode-usage-hud-sign-in.png" alt="ZCode Usage HUD sign-in panel" width="720">
 </p>
 
+### Expanded quota view
+
+<p align="center">
+  <img src="docs/screenshots/zcode-usage-hud-expanded.png" alt="ZCode Usage HUD expanded view showing token buckets, a pending promotion, and account totals" width="720">
+</p>
+
 ### Compact quota view
 
 <p align="center">
