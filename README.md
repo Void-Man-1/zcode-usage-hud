@@ -116,7 +116,7 @@ remaining percentage without taking over the desktop.
 <p align="center">
   <img src="docs/screenshots/zcode-usage-hud-expanded.png" alt="ZCode Usage HUD expanded view showing token buckets, a pending promotion, and account totals" width="720">
 </p>
-<p align="center"><em>All screenshots use preview data. Account identifiers are synthetic or redacted.</em></p>
+<p align="center"><em>All screenshots use the app's built-in preview data; no real account information is shown.</em></p>
 
 ### Compact quota view
 
