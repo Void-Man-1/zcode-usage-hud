@@ -13,8 +13,8 @@ CONNECTED / SYNCED
 
 STATUS PANEL
   AVAILABLE (green) or TOKENS EXHAUSTED (orange) computed from the
-  daily token buckets. Locked state counts down to the refill
-  (bucket PeriodEnd); unlock triggers a tray notification.
+  real token buckets. Locked state counts down to the next recurring
+  refill (bucket PeriodEnd); unlock triggers a tray notification.
 
 TOKEN BUCKET CARDS (one per billing/balance bucket)
   GLM-5.3 / GLM-5.3-Flash (today: Start Plan = 3,000,000 + 5,000,000):
@@ -113,7 +113,8 @@ SIGN-IN (real Google flow, no dead ends)
     the app (extra ZCode headers break this endpoint); failures log
     a secret-masked response to hud.log.
   The button/menu item toggles to "Cancel sign-in" while waiting, and
-  a 15s sign-in watcher still picks up sign-ins done in the ZCode app.
+  a 15s watcher notices changes to the HUD's own credential store, including
+  an explicit "Use ZCode app's session" import.
 
 SIGN-OUT
   Right-click menu "Sign out" cancels any pending login, deletes the
@@ -169,12 +170,15 @@ DIAGNOSTICS
   ZCode-Usage-HUD.exe --dump prints the live fetched snapshot as JSON
   without opening a window. Stacking decisions are logged to
   %LOCALAPPDATA%\ZCode Usage HUD\hud.log ("stack collapse/restack").
+  ZCode-Usage-HUD.exe --preview opens a synthetic UI preview without
+  signing in. ZCode-Usage-HUD.exe --logout clears the HUD session, and
+  --uninstall removes a self-installed copy.
 
 PRIVACY & SECURITY
   Where your data lives:
     - The HUD's session is %LOCALAPPDATA%\ZCode Usage HUD\
-      credentials.json (AES-256-GCM "enc:v1" envelope, machine-local
-      key — the same scheme the ZCode app itself uses; any process
+      credentials.json (AES-256-GCM "enc:v1" envelope, with a key derived
+      from the current Windows user's profile and username; any process
       running as your Windows user can read it, exactly like the app's
       own store). A fresh install starts signed out — it never attaches
       to the ZCode app's session and never reads or writes

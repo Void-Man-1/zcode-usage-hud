@@ -160,11 +160,17 @@ the saved session.
 ```powershell
 ZCode-Usage-HUD.exe --dump
 ZCode-Usage-HUD.exe --logout
+ZCode-Usage-HUD.exe --preview
 ```
 
 `--dump` prints the current fetched snapshot as JSON. `--logout` removes the
 HUD's local session without changing the ZCode app's session. Runtime logs and
 session data live under `%LOCALAPPDATA%\ZCode Usage HUD`.
+
+`--preview` opens the HUD with synthetic buckets and account data, which is
+useful for screenshots and UI checks without signing in. The executable also
+supports `--uninstall` for the self-installed copy; the normal installer can
+be removed from Windows Settings.
 
 The Python files in this repository are development and investigation tools
 for probing the public ZCode endpoints; they are not compiled into the HUD.
