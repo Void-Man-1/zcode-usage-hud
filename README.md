@@ -14,8 +14,6 @@
   <img src="https://img.shields.io/badge/Go-1.23-00ADD8?logo=go&logoColor=white" alt="Go 1.23">
 </p>
 
-![ZCode Usage HUD preview](docs/screenshots/zcode-usage-hud-preview.png)
-
 ZCode Usage HUD is a small Windows companion app for keeping an eye on your
 ZCode usage without opening the ZCode app itself. It stays on top of other
 windows, shows how much of each token pool remains, and can sit neatly above
@@ -30,6 +28,12 @@ clear view of:
 - live reset, activation, expiry, and subscription countdowns;
 - accepted promotions that have not activated yet;
 - Windows notifications for new promotions and expiring one-time pools.
+
+## Preview
+
+<p align="center">
+  <img src="docs/screenshots/zcode-usage-hud-preview.png" alt="ZCode Usage HUD showing separate daily and promotional token buckets" width="680">
+</p>
 
 It has its own encrypted local credential store and starts signed out on a
 fresh install. It never silently borrows the ZCode app's session; copying that
