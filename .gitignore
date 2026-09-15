@@ -1,0 +1,19 @@
+# Build artifacts (attach to GitHub Releases instead of tracking)
+ZCode-Usage-HUD.exe
+*.exe
+*.exe~
+
+# Local captures from development/testing — may contain real account data
+*.png
+*.jpg
+
+# Local logs and runtime state (all runtime data lives in
+# %LOCALAPPDATA%\ZCode Usage HUD, never inside the repo)
+*.log
+
+# Security-scanner local state
+.mimosa/
+
+# Graph analysis scratch files
+.graphify_*.json
+graphify-out/
