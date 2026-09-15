@@ -1,9 +1,14 @@
 # ZCode Usage HUD
 
 <p align="center">
-  <a href="https://github.com/Void-Man-1/zcode-usage-hud/releases/latest/download/ZCode-Usage-HUD-v1.2.0-Setup.exe">
+  <a href="https://github.com/Void-Man-1/zcode-usage-hud/releases/latest/download/ZCode-Usage-HUD-Setup.exe">
     <img src="https://img.shields.io/badge/Download-latest%20Windows%20installer-2ea44f?style=for-the-badge&logo=windows&logoColor=white" alt="Download the latest Windows installer">
   </a>
+</p>
+
+<p align="center">
+  <a href="https://z.ai"><img src="https://img.shields.io/badge/ZCode%20%2F%20Z.AI-official%20site-111827?style=for-the-badge" alt="Visit the official ZCode and Z.AI site"></a>
+  <a href="https://x.com/zai_org"><img src="https://img.shields.io/badge/Z.AI-on%20X-111827?style=for-the-badge&logo=x&logoColor=white" alt="Follow Z.AI on X"></a>
 </p>
 
 <p align="center">
@@ -17,6 +22,10 @@ ZCode Usage HUD is a small Windows companion app for keeping an eye on your
 ZCode usage without opening the ZCode app itself. It stays on top of other
 windows, shows how much of each token pool remains, and can sit neatly above
 the installed Codex Usage HUD.
+
+**Search terms:** ZCode usage monitor, Z.AI token quota tracker, GLM token
+dashboard, Windows quota HUD, ZCode promotion alerts, and desktop token
+usage monitor.
 
 The HUD reads ZCode's billing and account APIs, then turns the response into a
 clear view of:
@@ -83,6 +92,7 @@ remaining percentage without taking over the desktop.
 <p align="center">
   <img src="docs/screenshots/zcode-usage-hud-expanded.png" alt="ZCode Usage HUD expanded view showing token buckets, a pending promotion, and account totals" width="720">
 </p>
+<p align="center"><em>All screenshots use preview data. Account identifiers are synthetic or redacted.</em></p>
 
 ### Compact quota view
 
@@ -113,6 +123,9 @@ build it with Inno Setup 6:
 ISCC.exe installer\zcode-hud.iss
 ```
 
+Release downloads include `SHA256SUMS.txt` so the installer can be verified
+before opening it.
+
 The installer can add the HUD to Windows startup, create a desktop shortcut,
 and launch it after installation. Uninstalling removes the program and
 shortcuts but leaves the local data directory so a reinstall does not discard
@@ -131,6 +144,17 @@ session data live under `%LOCALAPPDATA%\ZCode Usage HUD`.
 
 The Python files in this repository are development and investigation tools
 for probing the public ZCode endpoints; they are not compiled into the HUD.
+
+## Compatibility
+
+- Windows x86-64
+- ZCode desktop account with an available billing/usage endpoint
+- Internet access for sign-in and refreshes
+- No administrator rights required; the installer uses a per-user location
+
+The HUD is tested against the ZCode response shapes used by version 3.11.2.
+Because those endpoints are not a public compatibility contract, a ZCode
+desktop update can temporarily affect sign-in or usage display.
 
 ## Troubleshooting
 
@@ -164,3 +188,10 @@ The current release is a finished Windows x86-64 build with a per-user
 installer. The repository also includes the Go source, unit tests, installer
 script, and small Python utilities used while investigating the ZCode API.
 The investigation scripts are not part of the shipped executable.
+
+## Links
+
+- [Official ZCode / Z.AI site](https://z.ai)
+- [Z.AI on X](https://x.com/zai_org)
+- [Releases and installer downloads](https://github.com/Void-Man-1/zcode-usage-hud/releases)
+- [Report a bug](https://github.com/Void-Man-1/zcode-usage-hud/issues/new)
