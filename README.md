@@ -1,5 +1,19 @@
 # ZCode Usage HUD
 
+<p align="center">
+  <a href="https://github.com/Void-Man-1/zcode-usage-hud/releases/latest/download/ZCode-Usage-HUD-v1.2.0-Setup.exe">
+    <img src="https://img.shields.io/badge/Download-latest%20Windows%20installer-2ea44f?style=for-the-badge&logo=windows&logoColor=white" alt="Download the latest Windows installer">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Void-Man-1/zcode-usage-hud/releases"><img src="https://img.shields.io/github/v/release/Void-Man-1/zcode-usage-hud?display_name=tag&sort=semver&logo=github" alt="Latest release"></a>
+  <a href="https://github.com/Void-Man-1/zcode-usage-hud/releases"><img src="https://img.shields.io/github/downloads/Void-Man-1/zcode-usage-hud/total?logo=github" alt="Total downloads"></a>
+  <a href="https://github.com/Void-Man-1/zcode-usage-hud"><img src="https://img.shields.io/github/repo-size/Void-Man-1/zcode-usage-hud?logo=github" alt="Repository size"></a>
+  <img src="https://img.shields.io/badge/platform-Windows%20x86--64-0078d4?logo=windows&logoColor=white" alt="Windows x86-64">
+  <img src="https://img.shields.io/badge/Go-1.23-00ADD8?logo=go&logoColor=white" alt="Go 1.23">
+</p>
+
 ZCode Usage HUD is a small Windows companion app for keeping an eye on your
 ZCode usage without opening the ZCode app itself. It stays on top of other
 windows, shows how much of each token pool remains, and can sit neatly above
