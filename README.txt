@@ -6,15 +6,15 @@ This project is released under the MIT License. You may fork, modify, build,
 redistribute, and contribute to it. It is not affiliated with, sponsored by,
 or endorsed by ZCode or Z.AI.
 
-Always-on-top ZCode usage HUD that reads ZCode's own data sources:
+An always-on-top ZCode usage HUD that reads ZCode's own data sources:
 
 CONNECTED / SYNCED
-  dot + email + active plan name, footer with sync time.
+  A status dot, email, and active plan name, with the sync time in the footer.
 
 STATUS PANEL
-  AVAILABLE (green) or TOKENS EXHAUSTED (orange) computed from the
-  real token buckets. Locked state counts down to the next recurring
-  refill (bucket PeriodEnd); unlock triggers a tray notification.
+  AVAILABLE (green) or TOKENS EXHAUSTED (orange), based on the real token
+  buckets. When all recurring buckets are empty, the panel counts down to the
+  next refill (bucket PeriodEnd) and shows a tray notification when they return.
 
 TOKEN BUCKET CARDS (one per billing/balance bucket)
   GLM-5.3 / GLM-5.3-Flash (today: Start Plan = 3,000,000 + 5,000,000):
@@ -28,10 +28,10 @@ TOKEN BUCKET CARDS (one per billing/balance bucket)
     ONE-TIME pool next to the DAILY pool of the same model).
   - RESETS IN live countdown to PeriodEnd + exact local refill time
 
-PROMO GRANTS (accepted but not spendable yet)
-  Z.AI drops promotions as a new plan + entitlement whose bucket only
-  appears once the grant activates (effective_at — the 100M one-time
-  offers work this way). While it is pending the HUD shows a PROMO
+PROMO GRANTS (accepted, but not spendable yet)
+  Z.AI delivers promotions as a new plan and entitlement. The bucket appears
+  only when the grant activates (effective_at; the 100M one-time offers work
+  this way). While it is pending, the HUD shows a PROMO
   GRANTS card with the grant size, models, a live "STARTS IN"
   countdown to effective_at, and the exact activation time; the
   collapsed panel lists a pending row too (blue PROMO qualifier + amber
@@ -97,7 +97,7 @@ DATA SOURCES (all stats the app could find)
   "Use ZCode app's session" (tray menu) copies the app's tokens over
   explicitly on request.
 
-SIGN-IN (real Google flow, no dead ends)
+SIGN-IN (the real Google flow)
   "Sign in with Google" drives the ZCode app's own CLI OAuth polling
   flow end to end, reverse-engineered from the ZCode bundle:
   - POST zcode.z.ai/api/v1/oauth/cli/init {provider:"zai"} with a
@@ -140,7 +140,7 @@ BEHAVIOR
   exhausted the panel becomes a large countdown to the recurring refill
   (one-time pools never count as refill sources). Signed-out state
   distinguishes "SIGN IN" from "OFFLINE" (API unreachable).
-  Close exits.
+  Closing the window exits the HUD.
   Companion-aware stacking everywhere: the collapsed strip parks directly
   above a detected companion HUD window instead of overlapping it, and the snapped
   expanded panel stacks above the companion too — both default to the
@@ -160,7 +160,7 @@ COOLDOWN MODE (minimized bar only)
   When every bucket is exhausted (computeUnlock locked), the MINIMIZED bar
   pulses its background under a steady "LIMIT REACHED" five times slowly
   (550ms on / 550ms off), then eases down (ease-in-out cubic, 160ms) to the
-  original Codex-HUD bar size (240 wide, taskbar height) — there are no
+  compact taskbar-sized bar (240 wide, taskbar height) — there are no
   percentage bars left to display. When buckets refill, it eases back open to
   fit all gauges and buckets. The EXPANDED view is never resized or alarmed by
   cooldown state.

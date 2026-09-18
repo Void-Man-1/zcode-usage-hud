@@ -1,14 +1,14 @@
 ; ZCode Usage HUD — per-user install wizard (Inno Setup 6)
 ; Compile: ISCC.exe installer\zcode-hud.iss  (from the project root)
 ;
-; Design notes:
+; Notes for maintainers:
 ;   - Per-user install (no admin): {autopf} resolves to
 ;     %LOCALAPPDATA%\Programs, matching the app's own installDir().
 ;   - The app self-manages its session data in
 ;     %LOCALAPPDATA%\ZCode Usage HUD; the installer never touches it,
 ;     so upgrading or reinstalling preserves the signed-in session.
-;   - Uninstalling closes a running HUD by itself (graceful --quit first,
-;     then force-kill after a wait) so removal never blocks on the app.
+;   - Uninstalling closes a running HUD automatically (graceful --quit first,
+;     then a force-kill fallback after a short wait), so removal never blocks.
 ;   - The optional "Start with Windows" task writes the same
 ;     HKCU\...\Run value the app's own tray-menu toggle uses, so both
 ;     stay in sync.
@@ -45,7 +45,7 @@ ArchitecturesInstallIn64BitMode=x64compatible
 RestartApplications=no
 
 [Tasks]
-Name: "startwithwindows"; Description: "Start {#MyAppName} with Windows (compact mode)"; \
+Name: "startwithwindows"; Description: "Start {#MyAppName} with Windows in compact mode"; \
     GroupDescription: "Startup:"; Flags: checkedonce
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; \
     GroupDescription: "Additional icons:"; Flags: unchecked

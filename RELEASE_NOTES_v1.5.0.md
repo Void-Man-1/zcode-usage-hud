@@ -1,14 +1,15 @@
-# ZCode Usage HUD v1.5.0 — update notice
+# ZCode Usage HUD v1.5.0 — what's new
 
-Covers everything since the v1.2.0 release (v1.3.0 → v1.5.0).
-Baseline for this diff: GitHub tag `v1.2.0` vs release v1.5.0 — 15 files changed, +1179/−166 lines.
+This release note covers the changes since v1.2.0 (v1.3.0 through v1.5.0).
+Compared with the GitHub tag `v1.2.0`, the v1.5.0 release changes 15 files:
++1179/−166 lines.
 
 ## 🛠 Patches & fixes
 
 **Uninstalling (or upgrading) no longer blocks on a running HUD — v1.5.0.**
-Previously the installer detected the running app through an `AppMutex` check and warned
-"app is still running," forcing you to exit the HUD by hand first. Now the installer closes
-the HUD itself, with no prompt at any step:
+Previously the installer detected a running app through `AppMutex` and warned
+"app is still running," so you had to exit the HUD yourself. The installer now
+closes it for you without prompting:
 
 - `AppMutex` / `CloseApplications` were removed from the setup, so the "close these
   applications?" dialog can never appear — for uninstall *and* for install-over-upgrade.
@@ -52,7 +53,7 @@ background pulses), and a refill arriving mid-flash can no longer leave the bar 
 
 ## ✨ New features
 
-- **Cooldown mode (v1.4.0, corrected in patches).** When every token bucket is exhausted,
+- **Cooldown mode (v1.4.0, corrected in patches).** When every token bucket is empty,
   the minimized bar flashes **LIMIT REACHED** five times slowly (background pulse only —
   the text stays steady), then eases down to the compact 240×40 bar so it stops hogging
   space when there are no percentage bars to display. On refill it eases back open to the

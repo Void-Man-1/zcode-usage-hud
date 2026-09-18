@@ -28,11 +28,7 @@ import (
 	"unsafe"
 )
 
-// Design tokens (Linear.app DESIGN.md, awesome-design-md library).
-// The HUD palette is translated from Linear's near-black canvas +
-// hairline-panel system: neutral inks and surfaces carry almost
-// everything; lavender is reserved for brand/focus/CTA accents and
-// the single success green for positive status. See DESIGN.md.
+// Design tokens for the HUD's dark panels and restrained accent palette.
 var ()
 
 const (
@@ -330,7 +326,7 @@ var (
 	accentValue uint32
 
 	// Cooldown strip state. inCooldown means the account is exhausted
-	// and the collapsed bar has shrunk to the Codex-HUD-size strip.
+	// and the collapsed bar has shrunk to the compact cooldown strip.
 	// anim drives flash + eased collapse/expand; UI-thread only.
 	inCooldown bool
 	anim       hudAnim
@@ -381,7 +377,7 @@ func easeInOutCubic(t float64) float64 {
 	return 1 + u*u*u/2
 }
 
-// cooldownDimensions returns the original Codex HUD's collapsed strip
+// cooldownDimensions returns the compact taskbar-sized strip
 // size: 240x40, height matching the taskbar when in the normal range.
 // Pure - unit-tested.
 func cooldownDimensions(taskbarH int32) (int32, int32) {
@@ -1517,8 +1513,8 @@ func stepAnimation() bool {
 	return true
 }
 
-// goCooldownStrip eases the window down to the Codex-HUD-size cooldown
-// bar, anchored at the current bottom-right corner.
+// goCooldownStrip eases the window down to the compact cooldown bar,
+// anchored at the current bottom-right corner.
 func goCooldownStrip() {
 	if hwndMain == 0 || !collapsed {
 		return
@@ -1865,7 +1861,7 @@ func parseBusinessToken(body []byte) (string, error) {
 	if !ok {
 		msg := strings.TrimSpace(r.Msg)
 		if msg == "" {
-			msg = "business login failed"
+			msg = "The account sign-in failed"
 		}
 		return "", fmt.Errorf("%s", msg)
 	}
@@ -2092,7 +2088,7 @@ func signOut() {
 	currentSnapshot = s
 	dataMu.Unlock()
 	postRefresh()
-	showTrayNotification("Signed out", "This HUD's session was cleared.")
+	showTrayNotification("Signed out", "This HUD's saved session was cleared.")
 	go refreshNow()
 }
 
@@ -2114,7 +2110,7 @@ func importZCodeAppSession() {
 	}
 	lastCredsMod = credsModTime()
 	logDiagnostic("session imported from ZCode app")
-	showTrayNotification("Session imported", "Now using the ZCode app's session.")
+	showTrayNotification("Session imported", "The HUD is now using the ZCode app's session.")
 	go refreshNow()
 }
 
@@ -2279,7 +2275,7 @@ func startGoogleLogin() {
 			return
 		}
 		if !time.Now().Before(initRes.expiresAt) {
-			failLogin(gen, "Sign-in expired — press “Sign in with Google” to try again.")
+			failLogin(gen, "Sign-in expired — choose “Sign in with Google” to try again.")
 			return
 		}
 		// Poll immediately once, then honor the server-instructed
@@ -2303,13 +2299,13 @@ func startGoogleLogin() {
 			time.Sleep(initRes.pollInterval)
 			continue
 		case "failed":
-			failLogin(gen, "Authorization failed in the browser — try again.")
+			failLogin(gen, "The browser sign-in was not completed — try again.")
 			return
 		case "ready":
 			finishGoogleLogin(gen, ready)
 			return
 		default:
-			failLogin(gen, "Unexpected sign-in response — try again.")
+			failLogin(gen, "The sign-in returned an unexpected response — try again.")
 			return
 		}
 	}
@@ -2563,20 +2559,20 @@ func installApp() {
 	}
 
 	if err := registerInstalledApp(dst); err != nil {
-		messageBox("Installed with warning", "The app was installed, but Windows registration failed:\n"+err.Error())
+		messageBox("Installed with a warning", "The app was installed, but Windows registration failed:\n"+err.Error())
 	}
 	if err := createStartMenuShortcuts(dst); err != nil {
-		messageBox("Installed with warning", "The application was installed, but its Start Menu shortcuts could not be created:\n"+err.Error()+"\n\nInstalled EXE:\n"+dst)
+		messageBox("Installed with a warning", "The application was installed, but its Start Menu shortcuts could not be created:\n"+err.Error()+"\n\nInstalled EXE:\n"+dst)
 	}
 	startupSummary := "enabled (compact mode)"
 	if err := setStartupPath(true, dst); err != nil {
-		startupSummary = "NOT enabled — open the HUD menu and choose Start with Windows"
+		startupSummary = "not enabled — open the HUD menu and choose Start with Windows"
 		logDiagnostic("installer could not enable startup: %v", err)
 	}
 
 	cmd := exec.Command(dst, "--hud")
 	_ = cmd.Start()
-	messageBox(appName, "Installed successfully.\n\nApplication folder:\n"+installDir()+"\n\nExecutable:\n"+dst+"\n\nStart Menu folder:\n"+startMenuFolder()+"\n\nStart with Windows: "+startupSummary+"\nNotification-area icon: enabled\nUnlock + promotion notifications: enabled\nMinimize: collapses to a live bucket-preview panel\nClose: exits the HUD\nAccount login: inside the HUD\nUninstall: Windows Settings > Apps > Installed apps")
+	messageBox(appName, "Installation complete.\n\nApplication folder:\n"+installDir()+"\n\nExecutable:\n"+dst+"\n\nStart Menu folder:\n"+startMenuFolder()+"\n\nStart with Windows: "+startupSummary+"\nNotification-area icon: enabled\nUnlock and promotion notifications: enabled\nMinimize: shows a live bucket preview\nClose: exits the HUD\nAccount login: inside the HUD\nUninstall: Windows Settings > Apps > Installed apps")
 }
 
 func uninstallApp() {
@@ -2594,7 +2590,7 @@ func uninstallApp() {
 	if err := os.RemoveAll(installDir()); err != nil {
 		logDiagnostic("uninstall could not remove install dir: %v", err)
 	}
-	messageBox(appBaseName, "Removed. The HUD's own data (sessions, logs) stays in:\n"+appDataDir())
+	messageBox(appBaseName, "The HUD was removed. Its saved data (sessions and logs) remains in:\n"+appDataDir())
 }
 
 // registerInstalledApp adds the Add/Remove Programs entry.
@@ -3482,7 +3478,7 @@ func paint(hwnd uintptr) {
 		drawText(hdc, fontSection, rgb(230, 230, 235), "CONNECT TO ZCODE", margin+14, y+12, contentRight-14, y+34, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
 		msg := s.Error
 		if msg == "" {
-			msg = "Not signed in yet — use the button below or the tray menu."
+			msg = "You are not signed in yet. Use the button below or the tray menu."
 		}
 		drawText(hdc, fontBody, rgb(207, 207, 214), msg, margin+14, y+42, contentRight-14, y+68, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 		drawText(hdc, fontSmall, rgb(125, 125, 137), "Opens Z.AI login in your browser — choose Google there.", margin+14, y+72, contentRight-14, y+94, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
@@ -3498,11 +3494,11 @@ func paint(hwnd uintptr) {
 			if s.LoginPending {
 				msg = "Complete the Google sign-in in your browser…"
 			} else {
-				msg = "Not signed in yet — use the button below or the tray menu."
+				msg = "You are not signed in yet. Use the button below or the tray menu."
 			}
 		}
 		drawText(hdc, fontBody, rgb(207, 207, 214), msg, margin+16, y+44, contentRight-16, y+68, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
-		drawText(hdc, fontSmall, rgb(135, 135, 146), "New tokens are picked up automatically when done.", margin+16, y+74, contentRight-16, y+98, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+		drawText(hdc, fontSmall, rgb(135, 135, 146), "The HUD will pick up your new tokens automatically.", margin+16, y+74, contentRight-16, y+98, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 		if s.QuotaNote != "" {
 			drawText(hdc, fontSmall, rgb(220, 125, 125), s.QuotaNote, margin+16, y+102, contentRight-16, y+124, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 		}
@@ -3540,7 +3536,7 @@ func paint(hwnd uintptr) {
 			drawText(hdc, fontSection, rgb(122, 220, 155), availableText, margin+18, y+11, contentRight-170, y+34, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
 			drawText(hdc, fontSmall, rgb(151, 157, 170), "SYNCED "+syncText(s.UpdatedAt), contentRight-170, y+11, contentRight-16, y+33, DT_RIGHT|DT_VCENTER|DT_SINGLELINE)
 			refill := earliestRefill(s.Balances)
-			body := "Token buckets have remaining quota."
+			body := "You still have tokens available."
 			if !refill.IsZero() {
 				body = "Next recurring refill in " + durationClock(refill.Sub(now)) + " (" + refill.Format("15:04") + " local)."
 			}
@@ -3554,7 +3550,7 @@ func paint(hwnd uintptr) {
 		if len(s.Balances) == 0 {
 			panel := RECT{margin, y, contentRight, y + 70}
 			fillPanel(hdc, panel, rgb(24, 24, 29))
-			drawText(hdc, fontBody, rgb(213, 213, 221), "No token buckets were returned for this account yet.", margin+14, y+12, contentRight-14, y+38, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+			drawText(hdc, fontBody, rgb(213, 213, 221), "No token buckets have been returned for this account yet.", margin+14, y+12, contentRight-14, y+38, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 			drawText(hdc, fontSmall, rgb(130, 130, 142), "Last sync: "+syncText(s.UpdatedAt), margin+14, y+40, contentRight-14, y+62, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
 			y += 82
 		} else {
@@ -4145,7 +4141,7 @@ func drawBalanceCard(hdc uintptr, rc *RECT, b Balance, y int32, now time.Time) {
 	nums := fmt.Sprintf("%s used   ·   %s left   ·   %s total", formatInt64(b.Used), formatInt64(b.Remaining), formatInt64(b.Total))
 	drawText(hdc, fontSmall, rgb(151, 157, 171), nums, card.Left+14, y+52, card.Right-14, y+72, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 	countdown := "—"
-	exact := "End time not reported"
+	exact := "Refill or expiry time not reported"
 	if !b.PeriodEnd.IsZero() {
 		if now.Before(b.PeriodEnd) {
 			countdown = durationClock(b.PeriodEnd.Sub(now))
@@ -4212,13 +4208,13 @@ func drawPendingGrantCard(hdc uintptr, rc *RECT, g PendingGrant, y int32, now ti
 	drawText(hdc, fontSmall, rgb(151, 157, 171), nums, card.Left+14, y+36, card.Right-14, y+56, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 
 	countdown := "PENDING"
-	exact := "Grant received — waiting for Z.AI to schedule it"
+	exact := "Grant received — waiting for Z.AI to activate it"
 	if !g.EffectiveAt.IsZero() {
 		if now.Before(g.EffectiveAt) {
 			countdown = "STARTS IN " + durationClock(g.EffectiveAt.Sub(now))
 			exact = "Activates: " + g.EffectiveAt.Format("Mon 02 Jan 2006 15:04:05") + " local"
 		} else {
-			countdown = "LIVE SOON"
+			countdown = "ACTIVATING…"
 			exact = "Activated at " + g.EffectiveAt.Format("15:04") + " — waiting for the bucket to appear"
 		}
 	}
@@ -4233,7 +4229,7 @@ func drawPendingGrantCard(hdc uintptr, rc *RECT, g PendingGrant, y int32, now ti
 	}
 	drawText(hdc, fontCountdownSmall, rgb(249, 250, 252), countdown, card.Left+14, y+54, card.Right-14, y+97, DT_CENTER|DT_VCENTER|DT_SINGLELINE)
 	drawText(hdc, fontSmall, rgb(154, 160, 174), exact, card.Left+14, y+96, card.Right-14, y+117, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
-	drawText(hdc, fontSmall, rgb(125, 160, 220), "No usage yet — the pool appears above once it activates", card.Left+14, y+113, card.Right-14, y+131, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontSmall, rgb(125, 160, 220), "No usage yet — this pool will appear above once it activates", card.Left+14, y+113, card.Right-14, y+131, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 }
 
 func durationClock(d time.Duration) string {
@@ -4424,7 +4420,7 @@ func collapsedGeometryEx() (x, y, w, h int32, companions []RECT) {
 	}
 	h = collapsedPanelHeight(collapsedPreviewRowCount(snap), taskbarH)
 	if inCooldown && anim.phase == "" {
-		// Cooldown mode shows the original Codex-HUD bar size.
+		// Cooldown mode uses the compact taskbar-sized bar.
 		w, h = cooldownDimensions(taskbarH)
 	}
 	x = wa.Right - w
@@ -4609,7 +4605,7 @@ func showMenu(hwnd uintptr) {
 	appendMenu(menu, MF_STRING, ID_SHOWHIDE, showText)
 	appendMenu(menu, MF_STRING, ID_PICKCOLOR, "HUD color...")
 	appendMenu(menu, MF_STRING, ID_REFRESH, "Refresh now")
-	appendMenu(menu, MF_STRING, ID_SNAP, "Snap to notification-area corner")
+	appendMenu(menu, MF_STRING, ID_SNAP, "Snap to notification area")
 	appendMenu(menu, MF_SEPARATOR, 0, "")
 	dataMu.RLock()
 	signedIn := currentSnapshot.SignedIn
@@ -4620,7 +4616,7 @@ func showMenu(hwnd uintptr) {
 	} else if signedIn {
 		appendMenu(menu, MF_STRING, ID_LOGOUT, "Sign out")
 	} else {
-		appendMenu(menu, MF_STRING, ID_SIGNIN, "Sign in with Google…")
+		appendMenu(menu, MF_STRING, ID_SIGNIN, "Sign in with Google...")
 		appendMenu(menu, MF_STRING, ID_IMPORT, "Use ZCode app's session")
 	}
 	appendMenu(menu, MF_STRING, ID_OPENZ, "Open ZCode folder")
@@ -4630,7 +4626,7 @@ func showMenu(hwnd uintptr) {
 	}
 	appendMenu(menu, MF_STRING, ID_STARTUP, startupText)
 	appendMenu(menu, MF_SEPARATOR, 0, "")
-	appendMenu(menu, MF_STRING, ID_EXIT, "Exit ZCode Usage HUD")
+	appendMenu(menu, MF_STRING, ID_EXIT, "Exit")
 	var pt POINT
 	procGetCursorPos.Call(uintptr(unsafe.Pointer(&pt)))
 	procSetForegroundWindow.Call(hwnd)
@@ -4655,10 +4651,10 @@ func handleCommand(hwnd uintptr, id int) {
 			messageBox("Start with Windows", "Windows could not update the startup setting.\n\n"+err.Error()+"\n\nDetails were written to:\n"+diagnosticLogPath())
 		} else if enable {
 			logDiagnostic("startup enabled and verified")
-			showTrayNotification("Start with Windows enabled", "ZCode Usage HUD will open in compact mode at your next sign-in.")
+			showTrayNotification("Start with Windows enabled", "ZCode Usage HUD will open in compact mode the next time you sign in to Windows.")
 		} else {
 			logDiagnostic("startup disabled and verified")
-			showTrayNotification("Start with Windows disabled", "ZCode Usage HUD will no longer open automatically at sign-in.")
+			showTrayNotification("Start with Windows disabled", "ZCode Usage HUD will no longer open automatically when you sign in to Windows.")
 		}
 	case ID_OPENZ:
 		shellOpen(zcodeDir())

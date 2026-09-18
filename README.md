@@ -26,14 +26,13 @@
   <img src="https://img.shields.io/badge/Go-1.23-00ADD8?logo=go&logoColor=white" alt="Go 1.23">
 </p>
 
-ZCode Usage HUD is a small Windows companion app for keeping an eye on your
-ZCode usage without opening the ZCode app itself. It stays on top of other
-windows, shows how much of each token pool remains, and can sit neatly above
-an installed companion HUD.
+ZCode Usage HUD is a small Windows companion app for checking your ZCode
+usage without keeping the ZCode app open. It stays above your other windows,
+shows what remains in each token pool, and can sit neatly above a companion HUD.
 
-**In one sentence:** ZCode Usage HUD is an independent Windows desktop
-application that displays ZCode/Z.AI token quotas, reset times, promotions,
-and account status in a compact always-on-top dashboard.
+**In short:** ZCode Usage HUD is an independent Windows desktop application
+that keeps ZCode/Z.AI token quotas, reset times, promotions, and account status
+visible in a compact always-on-top dashboard.
 
 The HUD reads ZCode's billing and account APIs, then turns the response into a
 clear view of:
@@ -57,10 +56,10 @@ clear view of:
 ## Open source
 
 This is an independent, open-source project released under the [MIT
-License](LICENSE). You are free to fork it, inspect the source, modify it,
-build your own version, redistribute it, and contribute improvements. The
-installer is only one convenient way to use it—you can also build the HUD
-yourself from the Go source.
+License](LICENSE). You can inspect the source, fork it, change it, build your
+own version, redistribute it, and send improvements upstream. The installer is
+just the convenient option; you can also build the HUD yourself from the Go
+source.
 
 This project is **not affiliated with, sponsored by, or endorsed by ZCode or
 Z.AI**. Those names are referenced only to describe the service this
@@ -73,12 +72,12 @@ change independently of this project.
 
 ## First launch
 
-1. Install the latest Windows installer from the download button above.
+1. Download and run the latest Windows installer from the button above.
 2. Open **ZCode Usage HUD** from the Start Menu or desktop shortcut.
 3. Select **Sign in with Google**. The HUD opens the Z.AI login page in your
    browser and waits for the completed sign-in.
-4. After the first refresh, the expanded panel shows every quota bucket
-   reported for the account.
+4. After the first refresh, the expanded panel shows every quota bucket the
+   account reports.
 
 The HUD starts signed out on purpose. If ZCode is already signed in, you can
 choose **Use ZCode app's session** from the tray menu, but that is an explicit
@@ -86,10 +85,10 @@ copy into the HUD's separate credential store—not automatic session sharing.
 
 ## Reading the HUD
 
-Each token bucket is shown independently because an account can have several
+Each token bucket is shown on its own because an account can have several
 quotas for the same model. A regular `DAILY`, `WEEKLY`, or `MONTHLY` bucket
-refills at its period end. A `PROMO` bucket is a one-time grant: it expires
-instead of refilling, and unused tokens are lost.
+refills at the end of its period. A `PROMO` bucket is a one-time grant: it
+expires instead of refilling, so unused tokens are lost.
 
 The expanded view is the detailed dashboard. It includes bucket-level usage,
 pending promotions, refill or activation countdowns, account totals, plan
@@ -104,7 +103,7 @@ remaining percentage without taking over the desktop.
   reattach it above a companion HUD or to the notification-area corner.
 - The tray menu provides **Refresh now**, **Snap**, **Open ZCode folder**,
   **Start with Windows (compact)**, sign-in/sign-out, and **Exit**.
-- The HUD refreshes account data about once per minute and repaints countdowns
+- The HUD refreshes account data about once a minute and repaints countdowns
   every second.
 - New promotions produce one tray notification. One-time pools with tokens
   remaining produce one expiry warning during their final 24 hours.
@@ -130,7 +129,7 @@ remaining percentage without taking over the desktop.
   <img src="docs/screenshots/zcode-usage-hud-compact.png" alt="ZCode Usage HUD compact strip showing separate daily and promotional token buckets" width="340">
 </p>
 
-It has its own encrypted local credential store and starts signed out on a
+The HUD has its own encrypted local credential store and starts signed out on a
 fresh install. It never silently borrows the ZCode app's session; copying that
 session is an explicit tray-menu action. Tokens are sent only to the
 hard-coded ZCode and Z.AI HTTPS endpoints, and the application does not
@@ -179,7 +178,7 @@ supports `--uninstall` for the self-installed copy; the normal installer can
 be removed from Windows Settings.
 
 The Python files in this repository are development and investigation tools
-for probing the public ZCode endpoints; they are not compiled into the HUD.
+for probing the public ZCode endpoints. They are not compiled into the HUD.
 
 ## Compatibility
 
@@ -194,21 +193,21 @@ desktop update can temporarily affect sign-in or usage display.
 
 ## Troubleshooting
 
-**The HUD says SIGN IN.** Complete the browser flow from the HUD, or use the
-tray menu's **Use ZCode app's session** action. The HUD does not read the
+**The HUD says SIGN IN.** Finish the browser sign-in started by the HUD, or
+use the tray menu's **Use ZCode app's session** action. The HUD never reads the
 ZCode app's credentials automatically.
 
-**The HUD says OFFLINE.** Check connectivity and try **Refresh now**. The
+**The HUD says OFFLINE.** Check your connection and try **Refresh now**. The
 service response, local credentials, and diagnostic details are recorded in
 `%LOCALAPPDATA%\ZCode Usage HUD\hud.log`; token-shaped values are masked.
 
-**The HUD shows no new promotion.** Promotions are detected on refresh and
-the first run silently establishes a baseline. A promotion already present
-before the first successful run will not generate a historical notification.
+**The HUD shows no new promotion.** Promotions are detected during refresh, and
+the first run quietly establishes a baseline. A promotion that was already
+present before the first successful run will not trigger a historical notice.
 
-**The installer closes a running HUD for you** (graceful close first; no
-prompt, no manual exit needed). The installer is per-user and does not
-require administrator access.
+**The installer closes a running HUD for you.** It tries a graceful close
+first, without prompting, so you do not need to exit the HUD manually. The
+installer is per-user and does not require administrator access.
 
 ## Frequently asked questions
 
