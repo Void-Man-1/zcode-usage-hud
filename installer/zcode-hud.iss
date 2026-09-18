@@ -7,14 +7,14 @@
 ;   - The app self-manages its session data in
 ;     %LOCALAPPDATA%\ZCode Usage HUD; the installer never touches it,
 ;     so upgrading or reinstalling preserves the signed-in session.
-;   - AppMutex lets Setup offer to close a running HUD before replacing
-;     the exe (the app creates Local\ZCodeUsageHUD-v1 at startup).
+;   - Uninstalling closes a running HUD by itself (graceful --quit first,
+;     then force-kill after a wait) so removal never blocks on the app.
 ;   - The optional "Start with Windows" task writes the same
 ;     HKCU\...\Run value the app's own tray-menu toggle uses, so both
 ;     stay in sync.
 
 #define MyAppName "ZCode Usage HUD"
-#define MyAppVersion "1.2.0"
+#define MyAppVersion "1.5.0"
 #define MyAppPublisher "ZCode Usage HUD"
 #define MyAppExeName "ZCode-Usage-HUD.exe"
 
@@ -24,8 +24,8 @@ AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} v{#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-VersionInfoVersion=1.2.0.0
-VersionInfoProductVersion=1.2.0.0
+VersionInfoVersion=1.5.0.0
+VersionInfoProductVersion=1.5.0.0
 DefaultDirName={autopf}\ZCode Usage HUD
 DirExistsWarning=no
 AppendDefaultDirName=no
@@ -36,13 +36,12 @@ WizardStyle=modern
 SetupIconFile=app.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 UninstallDisplayName={#MyAppName}
-OutputDir=output
+; Versioned per-release folder: releases\v{#MyAppVersion}\ (see RELEASES.md)
+OutputDir=..\releases\v{#MyAppVersion}
 OutputBaseFilename=ZCode-Usage-HUD-v{#MyAppVersion}-Setup
 Compression=lzma2/max
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64compatible
-AppMutex=Local\ZCodeUsageHUD-v1
-CloseApplications=yes
 RestartApplications=no
 
 [Tasks]
@@ -70,6 +69,46 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; \
 Filename: "{app}\{#MyAppExeName}"; Parameters: "--hud"; \
     Description: "Launch {#MyAppName}"; \
     Flags: nowait postinstall skipifsilent runasoriginaluser
+
+[Code]
+// Close a running HUD without prompting and without depending on the
+// installed exe's generation (old versions have no --quit): post
+// WM_CLOSE to the HUD window, wait briefly, then force-kill by image
+// name so removal never blocks on a running app.
+const
+  WM_CLOSE_LOCAL = $0010;
+
+function FindWindowW(Cls: string; Title: Longint): HWND;
+  external 'FindWindowW@user32.dll stdcall';
+procedure PostMessageW(H: HWND; Msg: UINT; W, L: Longint);
+  external 'PostMessageW@user32.dll stdcall';
+
+procedure CloseRunningHUD;
+var
+  Wnd: HWND;
+  Res: Integer;
+begin
+  Wnd := FindWindowW('ZCodeUsageHUDV1', 0);
+  if Wnd <> 0 then
+  begin
+    PostMessageW(Wnd, WM_CLOSE_LOCAL, 0, 0);
+    Sleep(1200);
+  end;
+  Exec('taskkill.exe', '/F /IM ZCode-Usage-HUD.exe', '', SW_HIDE,
+       ewWaitUntilTerminated, Res);
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  Result := '';
+  CloseRunningHUD;
+end;
+
+function InitializeUninstall(): Boolean;
+begin
+  Result := True;
+  CloseRunningHUD;
+end;
 
 [UninstallDelete]
 ; Intentionally does NOT delete %LOCALAPPDATA%\ZCode Usage HUD —

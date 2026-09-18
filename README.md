@@ -127,7 +127,7 @@ remaining percentage without taking over the desktop.
 ### Compact quota view
 
 <p align="center">
-  <img src="docs/screenshots/zcode-usage-hud-preview.png" alt="ZCode Usage HUD showing separate daily and promotional token buckets" width="340">
+  <img src="docs/screenshots/zcode-usage-hud-compact.png" alt="ZCode Usage HUD compact strip showing separate daily and promotional token buckets" width="340">
 </p>
 
 It has its own encrypted local credential store and starts signed out on a
@@ -206,7 +206,8 @@ service response, local credentials, and diagnostic details are recorded in
 the first run silently establishes a baseline. A promotion already present
 before the first successful run will not generate a historical notification.
 
-**The installer will not replace a running copy.** Exit the HUD from its tray
+**The installer closes a running HUD for you** (graceful close first; no
+prompt, no manual exit needed).
 menu and run the installer again. The installer is per-user and does not
 require administrator access.
 

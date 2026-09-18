@@ -3,6 +3,13 @@ ZCode-Usage-HUD.exe
 *.exe
 *.exe~
 
+# Versioned release folders (installers are attached to GitHub Releases,
+# not tracked; see RELEASES.md)
+releases/
+
+# Local dev harness captures (see scripts/dev/)
+scripts/dev/captures/
+
 # Local captures from development/testing — may contain real account data
 *.png
 *.jpg
