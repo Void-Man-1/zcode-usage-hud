@@ -1,7 +1,7 @@
 # ZCode Usage HUD
 
 <p align="center">
-  <a href="https://github.com/Void-Man-1/zcode-usage-hud/releases/latest/download/ZCode-Usage-HUD-Setup.exe">
+  <a href="https://github.com/Void-Man-1/zcode-usage-hud/releases/latest/download/ZCode-Usage-HUD-v1.5.0-Setup.exe">
     <img src="https://img.shields.io/badge/Download-latest%20Windows%20installer-2ea44f?style=for-the-badge&logo=windows&logoColor=white" alt="Download the latest Windows installer">
   </a>
 </p>
@@ -207,8 +207,7 @@ the first run silently establishes a baseline. A promotion already present
 before the first successful run will not generate a historical notification.
 
 **The installer closes a running HUD for you** (graceful close first; no
-prompt, no manual exit needed).
-menu and run the installer again. The installer is per-user and does not
+prompt, no manual exit needed). The installer is per-user and does not
 require administrator access.
 
 ## Frequently asked questions
