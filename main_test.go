@@ -5,7 +5,6 @@ package main
 import (
 	"encoding/json"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
@@ -295,7 +294,7 @@ func TestStackAboveRectNoObstacles(t *testing.T) {
 
 func TestStackAboveRectCollapsedCompanion(t *testing.T) {
 	// Both strips default to the same taskbar rectangle: the ZCode strip
-	// must move directly above the companion strip with a gap.
+	// must move directly above the Codex strip with a gap.
 	base := RECT{Left: 1680, Top: 1000, Right: 1920, Bottom: 1040}
 	codex := RECT{Left: 1680, Top: 1000, Right: 1920, Bottom: 1040}
 	got := stackAboveRect(base, []RECT{codex}, 4, 0)
@@ -505,41 +504,35 @@ func TestRemainingPctDrivesLeftSide(t *testing.T) {
 	}
 }
 
-func TestValidateAuthorizeURL(t *testing.T) {
-	// The server-issued authorize URL must pass through untouched.
-	in := "https://chat.z.ai/api/oauth/authorize?client_id=c&redirect_uri=https%3A%2F%2Fzcode.z.ai%2Fapi%2Fv1%2Foauth%2Fcli%2Fcallback%2Fzai&state=abc123&response_type=code"
-	out, err := validateAuthorizeURL(in)
+func TestFinalizeAuthorizeURL(t *testing.T) {
+	in := "https://chat.z.ai/api/oauth/authorize?client_id=c&redirect_uri=https%3A%2F%2Fx%2Fy&state=abc123&response_type=code"
+	final, state, err := finalizeAuthorizeURL(in)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if out != in {
-		t.Fatalf("URL was rewritten: %s", out)
+	if state != "abc123" {
+		t.Fatalf("state %q", state)
 	}
-	// The old desktop-bridge override is gone — the redirect stays the
-	// server's own CLI callback.
-	if strings.Contains(out, "app%2Foauth%2Flogin") || strings.Contains(out, "zcode%3A%2F%2F") {
-		t.Fatalf("redirect was overridden: %s", out)
+	if !strings.Contains(final, "redirect_uri=") || !strings.Contains(final, "app%2Foauth%2Flogin") {
+		t.Fatalf("redirect not bridged: %s", final)
 	}
-	if _, err := validateAuthorizeURL("http://evil.example/x?state=s"); err == nil {
+	if _, _, err := finalizeAuthorizeURL("https://chat.z.ai/api/oauth/authorize?client_id=c"); err == nil {
+		t.Fatal("expected missing-state error")
+	}
+	if _, _, err := finalizeAuthorizeURL("http://evil.example/x?state=s"); err == nil {
 		t.Fatal("expected non-https error")
-	}
-	if _, err := validateAuthorizeURL("not a url"); err == nil {
-		t.Fatal("expected parse error")
 	}
 }
 
 func TestParseOAuthInit(t *testing.T) {
 	now := time.Now().Unix()
-	body := []byte(`{"code":0,"msg":"","data":{"flow_id":"f1","poll_token":"ptok","authorize_url":"https://chat.z.ai/api/oauth/authorize?client_id=c&redirect_uri=https%3A%2F%2Fzcode.z.ai%2Fapi%2Fv1%2Foauth%2Fcli%2Fcallback%2Fzai&state=s9&response_type=code","expires_at":` + strconv.FormatInt(now+300, 10) + `,"poll_interval_sec":2}}`)
+	body := []byte(`{"code":0,"msg":"","data":{"flow_id":"f1","authorize_url":"https://chat.z.ai/api/oauth/authorize?client_id=c&state=s9&response_type=code","expires_at":` + strconv.FormatInt(now+300, 10) + `,"poll_interval_sec":2}}`)
 	r, err := parseOAuthInit(body, "ptok")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if r.flowID != "f1" || r.pollToken != "ptok" {
+	if r.flowID != "f1" || r.pollToken != "ptok" || r.state != "s9" {
 		t.Fatalf("got %+v", r)
-	}
-	if strings.Contains(r.authorizeURL, "app%2Foauth%2Flogin") {
-		t.Fatalf("authorize URL was rewritten: %s", r.authorizeURL)
 	}
 	if r.pollURL != oauthPollURLPrefix+"f1" {
 		t.Fatalf("pollURL %q", r.pollURL)
@@ -547,7 +540,7 @@ func TestParseOAuthInit(t *testing.T) {
 	if r.pollInterval != 2*time.Second {
 		t.Fatalf("interval %v", r.pollInterval)
 	}
-	bad := []byte(`{"code":0,"data":{"flow_id":"","authorize_url":"https://x/y","expires_at":1,"poll_interval_sec":0}}`)
+	bad := []byte(`{"code":0,"data":{"flow_id":"","authorize_url":"https://x","expires_at":1,"poll_interval_sec":0}}`)
 	if _, err := parseOAuthInit(bad, "p"); err == nil {
 		t.Fatal("expected bad-init error")
 	}
@@ -741,85 +734,5 @@ func TestImportZCodeAppSessionFrom(t *testing.T) {
 	}
 	if err := importZCodeAppSessionFrom(src, dst); err == nil {
 		t.Fatal("expected error for session-less source")
-	}
-}
-
-func TestUUIDv4(t *testing.T) {
-	seen := map[string]bool{}
-	for i := 0; i < 64; i++ {
-		id, err := uuidv4()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if len(id) != 36 || id[14] != '4' {
-			t.Fatalf("not a v4 UUID: %q", id)
-		}
-		if m := map[byte]bool{'8': true, '9': true, 'a': true, 'b': true}; !m[id[19]] {
-			t.Fatalf("bad variant nibble: %q", id)
-		}
-		if seen[id] {
-			t.Fatalf("duplicate UUID: %q", id)
-		}
-		seen[id] = true
-	}
-}
-
-func TestResolveDeviceIDAt(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "device-id.json")
-
-	// App present → app id wins, nothing persisted.
-	id, persisted, err := resolveDeviceIDAt(path, "app-mid")
-	if err != nil || id != "app-mid" || persisted {
-		t.Fatalf("app id: %q %v %v", id, persisted, err)
-	}
-	if _, err := os.Stat(path); !os.IsNotExist(err) {
-		t.Fatalf("app-mid case must not write the store: %v", err)
-	}
-
-	// App id whitespace-only → treated as absent.
-	if id, _, _ := resolveDeviceIDAt(path, "   "); id == "" || id == "   " {
-		t.Fatalf("whitespace app id must fall through, got %q", id)
-	}
-
-	// No app, no store → mint a UUID and persist it.
-	id, _, err = resolveDeviceIDAt(path, "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(id) != 36 || id[14] != '4' {
-		t.Fatalf("expected UUIDv4, got %q", id)
-	}
-	if _, err := os.Stat(path); err != nil {
-		t.Fatalf("minted id must persist: %v", err)
-	}
-
-	// Second call reuses the stored id.
-	again, _, err := resolveDeviceIDAt(path, "")
-	if err != nil || again != id {
-		t.Fatalf("id not stable: %q vs %q (%v)", again, id, err)
-	}
-
-	// A stored HUD id loses to the app id once the app appears.
-	if got, _, _ := resolveDeviceIDAt(path, "app-mid-2"); got != "app-mid-2" {
-		t.Fatalf("app id must win over store: %q", got)
-	}
-
-	// Corrupt store → regenerate instead of failing.
-	if err := os.WriteFile(path, []byte("{not json"), 0600); err != nil {
-		t.Fatal(err)
-	}
-	fixed, _, err := resolveDeviceIDAt(path, "")
-	if err != nil || len(fixed) != 36 {
-		t.Fatalf("corrupt store must regenerate: %q %v", fixed, err)
-	}
-
-	// Unwritable store → still returns a usable per-launch id.
-	ro := filepath.Join(dir, "ro-dir")
-	if err := os.Mkdir(ro, 0500); err != nil {
-		t.Fatal(err)
-	}
-	if id, _, _ := resolveDeviceIDAt(filepath.Join(ro, "device-id.json"), ""); id == "" {
-		t.Fatal("unwritable store must still yield an id")
 	}
 }

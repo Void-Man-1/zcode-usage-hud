@@ -28,27 +28,21 @@ import (
 	"unsafe"
 )
 
-// Design tokens (Linear.app DESIGN.md, awesome-design-md library).
-// The HUD palette is translated from Linear's near-black canvas +
-// hairline-panel system: neutral inks and surfaces carry almost
-// everything; lavender is reserved for brand/focus/CTA accents and
-// the single success green for positive status. See DESIGN.md.
-var ()
-
 const (
 	appName         = "ZCode Usage HUD v" + appVersion
 	appBaseName     = "ZCode Usage HUD"
-	appVersion      = "1.4.0"
-	zcodeAppVersion = "3.12.2"
+	appVersion      = "1.2.0"
+	zcodeAppVersion = "3.11.2"
 
 	balanceURL      = "https://zcode.z.ai/api/v1/zcode-plan/billing/balance?app_version=" + zcodeAppVersion
 	customerURL     = "https://api.z.ai/api/biz/customer/getCustomerInfo"
 	subscriptionURL = "https://api.z.ai/api/biz/subscription/list"
 	quotaURL        = "https://api.z.ai/api/monitor/usage/quota/limit"
 
-	oauthInitURL       = "https://zcode.z.ai/api/v1/oauth/cli/init"
-	oauthPollURLPrefix = "https://zcode.z.ai/api/v1/oauth/cli/poll/"
-	oauthBusinessLogin = "https://api.z.ai/api/auth/z/login"
+	oauthInitURL         = "https://zcode.z.ai/api/v1/oauth/cli/init"
+	oauthPollURLPrefix   = "https://zcode.z.ai/api/v1/oauth/cli/poll/"
+	oauthBusinessLogin   = "https://api.z.ai/api/auth/z/login"
+	oauthDesktopRedirect = "https://zcode.z.ai/app/oauth/login?redirect=zcode%3A%2F%2Foauth%2Fcallback&app_version=" + zcodeAppVersion
 
 	WS_POPUP       = 0x80000000
 	WS_VISIBLE     = 0x10000000
@@ -105,16 +99,15 @@ const (
 	TPM_RIGHTBUTTON = 0x0002
 	TPM_RETURNCMD   = 0x0100
 
-	ID_REFRESH   = 1001
-	ID_SNAP      = 1002
-	ID_STARTUP   = 1003
-	ID_OPENZ     = 1004
-	ID_EXIT      = 1006
-	ID_SHOWHIDE  = 1008
-	ID_SIGNIN    = 1010
-	ID_LOGOUT    = 1011
-	ID_IMPORT    = 1012
-	ID_PICKCOLOR = 1013
+	ID_REFRESH  = 1001
+	ID_SNAP     = 1002
+	ID_STARTUP  = 1003
+	ID_OPENZ    = 1004
+	ID_EXIT     = 1006
+	ID_SHOWHIDE = 1008
+	ID_SIGNIN   = 1010
+	ID_LOGOUT   = 1011
+	ID_IMPORT   = 1012
 
 	SPI_GETWORKAREA = 0x0030
 
@@ -160,14 +153,12 @@ const (
 )
 
 var (
-	user32           = syscall.NewLazyDLL("user32.dll")
-	gdi32            = syscall.NewLazyDLL("gdi32.dll")
-	kernel32         = syscall.NewLazyDLL("kernel32.dll")
-	advapi32         = syscall.NewLazyDLL("advapi32.dll")
-	shell32          = syscall.NewLazyDLL("shell32.dll")
-	ole32            = syscall.NewLazyDLL("ole32.dll")
-	comdlg32         = syscall.NewLazyDLL("comdlg32.dll")
-	procChooseColorW = comdlg32.NewProc("ChooseColorW")
+	user32   = syscall.NewLazyDLL("user32.dll")
+	gdi32    = syscall.NewLazyDLL("gdi32.dll")
+	kernel32 = syscall.NewLazyDLL("kernel32.dll")
+	advapi32 = syscall.NewLazyDLL("advapi32.dll")
+	shell32  = syscall.NewLazyDLL("shell32.dll")
+	ole32    = syscall.NewLazyDLL("ole32.dll")
 
 	procRegisterClassExW         = user32.NewProc("RegisterClassExW")
 	procCreateWindowExW          = user32.NewProc("CreateWindowExW")
@@ -273,8 +264,8 @@ var (
 	expandedRectValid bool
 	expandedRect      RECT
 
-	// Companion HUD window classes and their legacy/preview builds.
-	// The ZCode collapsed strip stacks above a
+	// Companion HUD window classes (the installed Codex HUD and its
+	// legacy/preview builds). The ZCode collapsed strip stacks above a
 	// visible companion instead of overlapping it, since both HUDs
 	// default to the same notification-area corner.
 	companionHUDClasses = []string{"CodexUsageHUDV3", "CodexUsageHUDPreviewV3", "CodexLimitHUDV2"}
@@ -286,14 +277,6 @@ var (
 	titleHover     int
 	mouseTracking  bool
 	previewMode    bool
-	previewLocked  bool
-	previewLaunch  time.Time
-
-	// previewScript schedules extra publishes relative to previewLaunch
-	// so harnesses can interleave snapshots mid-animation;
-	// lockWindowSecs shortens the exhausted beat for those runs.
-	previewScript  []previewEvent
-	lockWindowSecs = 8
 
 	// Toasts raised before the tray icon exists are queued here and
 	// delivered by flushToastQueue on the UI thread.
@@ -322,83 +305,7 @@ var (
 	loginMu      sync.Mutex
 	loginGen     int
 	loginPending bool
-
-	// User-picked HUD accent color (tray menu "HUD color..."). accentSet
-	// stays false until the user picks, so the default render matches
-	// the original palette exactly.
-	accentSet   bool
-	accentValue uint32
-
-	// Cooldown strip state. inCooldown means the account is exhausted
-	// and the collapsed bar has shrunk to the Codex-HUD-size strip.
-	// anim drives flash + eased collapse/expand; UI-thread only.
-	inCooldown bool
-	anim       hudAnim
 )
-
-// hudAnim is the collapse/expand state machine. phase "": idle;
-// "flash": blinking LIMIT REACHED before the cooldown collapse;
-// "collapse"/"expand": eased window-rect interpolation.
-type hudAnim struct {
-	phase   string
-	start   time.Time
-	visible bool
-	fromR   RECT
-	toR     RECT
-}
-
-// Flash timing: 5 slow blinks, 1.1 s per blink (550 ms on, 550 ms off).
-const (
-	flashCycle = 1100 * time.Millisecond
-	flashOn    = 550 * time.Millisecond
-	flashCount = 5
-	animFPS    = 16 * time.Millisecond
-	animDurMs  = 160
-)
-
-// flashState maps elapsed flash time to (text visible, all blinks done).
-// Pure - unit-tested.
-func flashState(elapsed time.Duration) (visible, done bool) {
-	cycles := int(elapsed / flashCycle)
-	if cycles >= flashCount {
-		return false, true
-	}
-	return elapsed%flashCycle < flashOn, false
-}
-
-// easeInOutCubic: slow-fast-slow interpolation, 0..1. Pure - unit-tested.
-func easeInOutCubic(t float64) float64 {
-	if t <= 0 {
-		return 0
-	}
-	if t >= 1 {
-		return 1
-	}
-	if t < 0.5 {
-		return 4 * t * t * t
-	}
-	u := 2*t - 2
-	return 1 + u*u*u/2
-}
-
-// cooldownDimensions returns the original Codex HUD's collapsed strip
-// size: 240x40, height matching the taskbar when in the normal range.
-// Pure - unit-tested.
-func cooldownDimensions(taskbarH int32) (int32, int32) {
-	if taskbarH >= 30 && taskbarH <= 100 {
-		return 240, taskbarH
-	}
-	return 240, 40
-}
-
-// accentColor returns the user-picked HUD color when one was chosen,
-// otherwise the site's original color (byte-identical default).
-func accentColor(original uint32) uint32 {
-	if accentSet {
-		return accentValue
-	}
-	return original
-}
 
 type WNDCLASSEX struct {
 	CbSize        uint32
@@ -566,7 +473,7 @@ func balanceUsedPercent(b Balance) float64 {
 	return p
 }
 
-// computeUnlock uses companion-style daily token bucket semantics:
+// computeUnlock mirrors the Codex HUD semantics for daily token buckets:
 // locked only when every real bucket (total > 0) is fully exhausted.
 // Zero-total placeholder buckets neither count as exhausted nor keep the
 // HUD available, and the unlock time comes from recurring buckets only —
@@ -1072,16 +979,12 @@ func fetchSnapshot() Snapshot {
 	if creds.ZCodeJWT == "" && creds.AccessToken == "" {
 		return Snapshot{Connected: true, UpdatedAt: now}
 	}
-	// One device id per fetch, used on every header pack: the ZCode
-	// app's mid when present, otherwise the HUD's own persisted UUID
-	// (billing/balance rejects requests without X-Device-Mid).
-	mid := deviceMid()
-	s := Snapshot{Connected: true, Email: creds.Email, Name: creds.Name, UserID: creds.UserID, DeviceMid: mid, UpdatedAt: now}
+	s := Snapshot{Connected: true, Email: creds.Email, Name: creds.Name, UserID: creds.UserID, DeviceMid: creds.DeviceMid, UpdatedAt: now}
 
 	// 1) billing/balance carries every token stat: plans, entitlements, buckets.
 	if creds.ZCodeJWT != "" {
 		var br balanceAPIResponse
-		if _, err := getJSON(balanceURL, zcodeHeaders(creds.ZCodeJWT, mid), &br); err != nil {
+		if _, err := getJSON(balanceURL, zcodeHeaders(creds.ZCodeJWT, creds.DeviceMid), &br); err != nil {
 			s.Error = "billing/balance failed: " + err.Error()
 		} else if br.Code != 0 {
 			msg := strings.TrimSpace(br.Msg)
@@ -1130,72 +1033,57 @@ func fetchSnapshot() Snapshot {
 			})
 		}
 	}
-	// 2) customer + subscription + coding-plan quota via the Z.AI access
-	// token. The three calls are independent, so they run concurrently:
-	// total latency is the slowest roundtrip instead of the sum of all
-	// three. Each goroutine writes a distinct Snapshot field.
+	// 2) customer + subscription + coding-plan quota via the Z.AI access token.
 	if creds.AccessToken != "" {
-		var wg sync.WaitGroup
-		wg.Add(3)
-		go func() {
-			defer wg.Done()
-			var cr struct {
-				Code int    `json:"code"`
-				Msg  string `json:"msg"`
-				Data struct {
-					ID             int64  `json:"id"`
-					CustomerNumber string `json:"customerNumber"`
-					Email          string `json:"email"`
-					UserType       string `json:"userType"`
-					Channel        string `json:"channel"`
-					IsNewUser      bool   `json:"isNewUser"`
-					CreateTime     string `json:"createTime"`
-					Organizations  []struct {
-						OrganizationName string `json:"organizationName"`
-						Projects         []struct {
-							ProjectName string `json:"projectName"`
-						} `json:"projects"`
-					} `json:"organizations"`
-				} `json:"data"`
-			}
-			if _, err := getJSON(customerURL, zcodeHeaders(creds.AccessToken, mid), &cr); err == nil && cr.Code == 200 {
-				c := &Customer{ID: cr.Data.ID, CustomerNumber: cr.Data.CustomerNumber, EmailMasked: cr.Data.Email, UserType: cr.Data.UserType, Channel: cr.Data.Channel, IsNewUser: cr.Data.IsNewUser, CreatedAt: cr.Data.CreateTime}
-				if len(cr.Data.Organizations) > 0 {
-					c.OrgName = cr.Data.Organizations[0].OrganizationName
-					if len(cr.Data.Organizations[0].Projects) > 0 {
-						c.ProjectName = cr.Data.Organizations[0].Projects[0].ProjectName
-					}
+		var cr struct {
+			Code int    `json:"code"`
+			Msg  string `json:"msg"`
+			Data struct {
+				ID             int64  `json:"id"`
+				CustomerNumber string `json:"customerNumber"`
+				Email          string `json:"email"`
+				UserType       string `json:"userType"`
+				Channel        string `json:"channel"`
+				IsNewUser      bool   `json:"isNewUser"`
+				CreateTime     string `json:"createTime"`
+				Organizations  []struct {
+					OrganizationName string `json:"organizationName"`
+					Projects         []struct {
+						ProjectName string `json:"projectName"`
+					} `json:"projects"`
+				} `json:"organizations"`
+			} `json:"data"`
+		}
+		if _, err := getJSON(customerURL, zcodeHeaders(creds.AccessToken, creds.DeviceMid), &cr); err == nil && cr.Code == 200 {
+			c := &Customer{ID: cr.Data.ID, CustomerNumber: cr.Data.CustomerNumber, EmailMasked: cr.Data.Email, UserType: cr.Data.UserType, Channel: cr.Data.Channel, IsNewUser: cr.Data.IsNewUser, CreatedAt: cr.Data.CreateTime}
+			if len(cr.Data.Organizations) > 0 {
+				c.OrgName = cr.Data.Organizations[0].OrganizationName
+				if len(cr.Data.Organizations[0].Projects) > 0 {
+					c.ProjectName = cr.Data.Organizations[0].Projects[0].ProjectName
 				}
-				s.Customer = c
 			}
-		}()
+			s.Customer = c
+		}
 		// Paid-plan subscriptions (renewal info); empty for
 		// Start-Plan-only accounts.
-		go func() {
-			defer wg.Done()
-			if raw, err := getJSONBody(subscriptionURL, zcodeHeaders(creds.AccessToken, mid)); err == nil {
-				s.Subscriptions = parseSubscriptions(raw)
+		if raw, err := getJSONBody(subscriptionURL, zcodeHeaders(creds.AccessToken, creds.DeviceMid)); err == nil {
+			s.Subscriptions = parseSubscriptions(raw)
+		}
+		var qr struct {
+			Code    int    `json:"code"`
+			Msg     string `json:"msg"`
+			Success bool   `json:"success"`
+			Data    *struct {
+				ServerTime int64  `json:"server_time"`
+				Level      string `json:"level"`
+			} `json:"data"`
+		}
+		if _, err := getJSON(quotaURL, zcodeHeaders(creds.AccessToken, creds.DeviceMid), &qr); err == nil {
+			s.QuotaNote = friendlyQuotaNote(qr.Msg, qr.Success, "")
+			if qr.Success && qr.Data != nil {
+				s.QuotaNote = friendlyQuotaNote(qr.Msg, true, qr.Data.Level)
 			}
-		}()
-		go func() {
-			defer wg.Done()
-			var qr struct {
-				Code    int    `json:"code"`
-				Msg     string `json:"msg"`
-				Success bool   `json:"success"`
-				Data    *struct {
-					ServerTime int64  `json:"server_time"`
-					Level      string `json:"level"`
-				} `json:"data"`
-			}
-			if _, err := getJSON(quotaURL, zcodeHeaders(creds.AccessToken, mid), &qr); err == nil {
-				s.QuotaNote = friendlyQuotaNote(qr.Msg, qr.Success, "")
-				if qr.Success && qr.Data != nil {
-					s.QuotaNote = friendlyQuotaNote(qr.Msg, true, qr.Data.Level)
-				}
-			}
-		}()
-		wg.Wait()
+		}
 	}
 	s.UpdatedAt = time.Now()
 	return s
@@ -1209,10 +1097,6 @@ func refreshNow() {
 		return
 	}
 	if !lastFetch.IsZero() && time.Since(lastFetch) < 1500*time.Millisecond {
-		// Don't drop the request: the caller asked for fresh data
-		// (post-login, watcher). Run it as soon as the throttle lifts
-		// instead of silently waiting for the next timer tick.
-		time.AfterFunc(1500*time.Millisecond-time.Since(lastFetch), refreshNow)
 		fetchMu.Unlock()
 		return
 	}
@@ -1354,266 +1238,6 @@ func loadPromoSeenKeysAt(path string) (map[string]bool, bool) {
 	return out, true
 }
 
-// TIMER_ANIM drives the flash and collapse/expand frames.
-const TIMER_ANIM = 4
-
-// CC_* flags for the standard color dialog.
-const (
-	CC_RGBINIT  = 0x00000001
-	CC_FULLOPEN = 0x00000002
-)
-
-// chooseColor mirrors CHOOSECOLORW for comdlg32 ChooseColorW.
-type chooseColor struct {
-	lStructSize    uint32
-	hwndOwner      uintptr
-	hInstance      uintptr
-	rgbResult      uint32
-	lpCustColors   *uint32
-	flags          uint32
-	lCustData      uintptr
-	lpfnHook       uintptr
-	lpTemplateName uintptr
-}
-
-// customColors backs the color dialog's 16 custom swatches.
-var customColors [16]uint32
-
-// accentPrefPath -> <appdata>/zcode-usage-hud/accent.json
-func accentPrefPath() string {
-	return filepath.Join(appDataDir(), "accent.json")
-}
-
-// loadAccentPref restores a previously picked HUD color. A missing or
-// malformed file leaves the original palette active.
-func loadAccentPref() {
-	data, err := os.ReadFile(accentPrefPath())
-	if err != nil {
-		return
-	}
-	var saved struct {
-		Accent uint32 `json:"accent"`
-	}
-	if json.Unmarshal(data, &saved) != nil || saved.Accent == 0 {
-		return
-	}
-	accentSet = true
-	accentValue = saved.Accent
-}
-
-// saveAccentPref persists the picked HUD color.
-func saveAccentPref() {
-	if err := os.MkdirAll(appDataDir(), 0o755); err != nil {
-		return
-	}
-	data, _ := json.Marshal(map[string]uint32{"accent": accentValue})
-	os.WriteFile(accentPrefPath(), data, 0o644)
-}
-
-// pickHUDColor opens the standard Win32 color dialog (UI thread) and
-// applies the choice to the HUD surfaces immediately, then persists it.
-func pickHUDColor() {
-	if hwndMain == 0 {
-		return
-	}
-	var cc chooseColor
-	cc.lStructSize = uint32(unsafe.Sizeof(cc))
-	cc.hwndOwner = hwndMain
-	cc.rgbResult = 0x00FFFFFF
-	cc.lpCustColors = &customColors[0]
-	cc.flags = CC_FULLOPEN | CC_RGBINIT
-	r, _, _ := procChooseColorW.Call(uintptr(unsafe.Pointer(&cc)))
-	if r != 0 {
-		accentValue = cc.rgbResult
-		accentSet = true
-		saveAccentPref()
-		procInvalidateRect.Call(hwndMain, 0, 0)
-	}
-}
-
-// taskbarHeight returns the primary taskbar height, defaulting to 40
-// outside the sane range.
-func taskbarHeight() int32 {
-	if taskbar, _, ok := taskbarRects(); ok {
-		th := taskbar.Bottom - taskbar.Top
-		if th >= 30 && th <= 100 {
-			return th
-		}
-	}
-	return 40
-}
-
-// startFlash begins the 5x slow LIMIT REACHED blink that precedes the
-// collapse into cooldown mode. UI-thread only.
-func startFlash() {
-	if anim.phase != "" {
-		return
-	}
-	anim = hudAnim{phase: "flash", start: time.Now(), visible: true}
-	procSetTimer.Call(hwndMain, TIMER_ANIM, uintptr(animFPS/time.Millisecond), 0)
-}
-
-// startRectTransition eases the window between two rects with an
-// ease-in-out curve instead of snapping. UI-thread only.
-func startRectTransition(fromR, toR RECT) {
-	if fromR.Left == toR.Left && fromR.Top == toR.Top &&
-		fromR.Right == toR.Right && fromR.Bottom == toR.Bottom {
-		return
-	}
-	anim = hudAnim{phase: "rect", start: time.Now(), fromR: fromR, toR: toR}
-	procSetTimer.Call(hwndMain, TIMER_ANIM, uintptr(animFPS/time.Millisecond), 0)
-}
-
-// stepAnimation advances flash/rect by one frame and stops cleanly at
-// the end state. Returns true while the animation is still running.
-func stepAnimation() bool {
-	a := &anim
-	switch a.phase {
-	case "flash":
-		visible, done := flashState(time.Since(a.start))
-		a.visible = visible
-		if done {
-			a.phase = ""
-			procKillTimer.Call(hwndMain, TIMER_ANIM)
-			// Re-check the lock state: the account may have refilled
-			// mid-blink, in which case the edge was already consumed
-			// and the bar must not shrink.
-			if collapsed && inCooldown {
-				if currentSnapshotLocked() {
-					goCooldownStrip()
-				} else {
-					inCooldown = false
-				}
-			}
-			return false
-		}
-	case "rect":
-		t := float64(time.Since(a.start).Milliseconds()) / float64(animDurMs)
-		if t >= 1 {
-			procSetWindowPos.Call(hwndMain, ^uintptr(0),
-				uintptr(a.toR.Left), uintptr(a.toR.Top),
-				uintptr(a.toR.Right-a.toR.Left), uintptr(a.toR.Bottom-a.toR.Top), SWP_SHOWWINDOW)
-			a.phase = ""
-			procKillTimer.Call(hwndMain, TIMER_ANIM)
-			// A snapshot that arrived mid-transition skipped its
-			// resize; apply it now that the window settled.
-			if !collapsed {
-				resizeForSnapshot()
-			}
-			procInvalidateRect.Call(hwndMain, 0, 0)
-			return false
-		}
-		k := easeInOutCubic(t)
-		l := int32(float64(a.fromR.Left) + k*float64(a.toR.Left-a.fromR.Left))
-		tp := int32(float64(a.fromR.Top) + k*float64(a.toR.Top-a.fromR.Top))
-		r := int32(float64(a.fromR.Right) + k*float64(a.toR.Right-a.fromR.Right))
-		b := int32(float64(a.fromR.Bottom) + k*float64(a.toR.Bottom-a.fromR.Bottom))
-		procSetWindowPos.Call(hwndMain, ^uintptr(0), uintptr(l), uintptr(tp),
-			uintptr(r-l), uintptr(b-tp), SWP_SHOWWINDOW)
-	default:
-		return false
-	}
-	procInvalidateRect.Call(hwndMain, 0, 0)
-	return true
-}
-
-// goCooldownStrip eases the window down to the Codex-HUD-size cooldown
-// bar, anchored at the current bottom-right corner.
-func goCooldownStrip() {
-	if hwndMain == 0 || !collapsed {
-		return
-	}
-	w, h := cooldownDimensions(taskbarHeight())
-	fromR := windowRect(hwndMain)
-	toR := RECT{Left: fromR.Right - w, Top: fromR.Bottom - h, Right: fromR.Right, Bottom: fromR.Bottom}
-	startRectTransition(fromR, toR)
-}
-
-// windowRect returns the current outer window rectangle.
-func windowRect(hwnd uintptr) RECT {
-	var r RECT
-	procGetWindowRect.Call(hwnd, uintptr(unsafe.Pointer(&r)))
-	return r
-}
-
-// restoreCollapsedSize eases the minimized bar from the cooldown strip
-// back to its normal size once the buckets refill, so it fits all
-// gauges and buckets again. The expanded view is never involved.
-func restoreCollapsedSize() {
-	if hwndMain == 0 || !collapsed || anim.phase != "" {
-		return
-	}
-	fromR := windowRect(hwndMain)
-	x, y, w, h, _ := collapsedGeometryEx()
-	startRectTransition(fromR, RECT{Left: x, Top: y, Right: x + w, Bottom: y + h})
-}
-
-// enterCooldownOrExpand runs on the UI thread after every snapshot
-// resize: a newly exhausted account starts the 5x flash and then eases
-// into the cooldown strip; a refilled account eases back to full HUD.
-// No-op mid-animation so transitions never overlap.
-func enterCooldownOrExpand() {
-	if hwndMain == 0 || (previewMode && !previewLocked) || !currentSnapshotValid() {
-		return
-	}
-	locked := currentSnapshotLocked()
-	if locked && !inCooldown {
-		inCooldown = true
-		// Only the minimized bar changes: it flashes LIMIT REACHED
-		// and shrinks to the strip (no percentage bars to show).
-		// The expanded view is NEVER resized by cooldown state.
-		if collapsed && anim.phase == "" {
-			startFlash()
-		}
-		return
-	}
-	if !locked && inCooldown {
-		inCooldown = false
-		// Refilled: the minimized bar eases back open to fit all
-		// gauges and buckets. Expanded view: flag only.
-		if collapsed && anim.phase == "" {
-			restoreCollapsedSize()
-		}
-	}
-}
-
-// currentSnapshotValid reports whether the snapshot describes a
-// signed-in account with bucket data (the only state cooldown applies to).
-func currentSnapshotValid() bool {
-	dataMu.RLock()
-	defer dataMu.RUnlock()
-	return currentSnapshot.SignedIn && len(currentSnapshot.Balances) > 0
-}
-
-// currentSnapshotLocked reports whether every bucket is exhausted,
-// mirroring computeUnlock's locked condition.
-func currentSnapshotLocked() bool {
-	dataMu.RLock()
-	s := cloneSnapshot(currentSnapshot)
-	dataMu.RUnlock()
-	if !s.SignedIn || len(s.Balances) == 0 {
-		return false
-	}
-	_, locked := computeUnlock(s.Balances, time.Now())
-	return locked
-}
-
-// flashOverlay paints the cooldown alarm card. Only the background
-// flashes: alarm red on the beat, normal panel color off it. The
-// LIMIT REACHED text itself never flashes.
-func flashOverlay(hdc uintptr, rc RECT, on bool) {
-	bgc, frame := rgb(13, 14, 17), rgb(42, 45, 54)
-	if on {
-		bgc, frame = accentColor(rgb(24, 16, 18)), rgb(196, 57, 67)
-	}
-	bg := createBrush(bgc)
-	defer procDeleteObject.Call(bg)
-	procFillRect.Call(hdc, uintptr(unsafe.Pointer(&rc)), bg)
-	framePanel(hdc, rc, frame)
-	drawText(hdc, fontHeader, rgb(247, 248, 250), "LIMIT REACHED",
-		rc.Left, rc.Top, rc.Right, rc.Bottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE)
-}
-
 func savePromoSeenKeysAt(path string, m map[string]bool) error {
 	keys := make([]string, 0, len(m))
 	for k := range m {
@@ -1720,6 +1344,7 @@ type oauthInitResult struct {
 	pollToken    string
 	pollURL      string
 	authorizeURL string
+	state        string
 	expiresAt    time.Time
 	pollInterval time.Duration
 }
@@ -1730,18 +1355,22 @@ type oauthReady struct {
 	userRaw     json.RawMessage
 }
 
-// validateAuthorizeURL sanity-checks the server-issued authorize URL.
-// It is opened EXACTLY as issued — never rewritten. The server binds
-// redirect_uri to its own CLI callback page; overriding it to the
-// desktop zcode:// bridge (pre-1.3.0) handed the completed
-// authorization to the installed ZCode app racing the HUD's poll,
-// which is what forced users to sign in twice.
-func validateAuthorizeURL(raw string) (string, error) {
+// finalizeAuthorizeURL points the server-issued authorize URL at the
+// desktop bridge (same redirect the ZCode app uses) and returns the
+// final browser URL plus its state parameter.
+func finalizeAuthorizeURL(raw string) (string, string, error) {
 	u, err := url.Parse(raw)
-	if err != nil || u.Scheme != "https" || u.Host == "" || u.Path == "" {
-		return "", fmt.Errorf("bad authorize URL")
+	if err != nil || u.Scheme != "https" || u.Host == "" {
+		return "", "", fmt.Errorf("bad authorize URL")
 	}
-	return u.String(), nil
+	q := u.Query()
+	q.Set("redirect_uri", oauthDesktopRedirect)
+	u.RawQuery = q.Encode()
+	state := strings.TrimSpace(u.Query().Get("state"))
+	if state == "" {
+		return "", "", fmt.Errorf("authorize URL has no state")
+	}
+	return u.String(), state, nil
 }
 
 func parseOAuthInit(body []byte, pollToken string) (oauthInitResult, error) {
@@ -1750,7 +1379,6 @@ func parseOAuthInit(body []byte, pollToken string) (oauthInitResult, error) {
 		Msg  string `json:"msg"`
 		Data struct {
 			FlowID          string `json:"flow_id"`
-			PollToken       string `json:"poll_token"`
 			AuthorizeURL    string `json:"authorize_url"`
 			ExpiresAt       int64  `json:"expires_at"`
 			PollIntervalSec int64  `json:"poll_interval_sec"`
@@ -1773,7 +1401,7 @@ func parseOAuthInit(body []byte, pollToken string) (oauthInitResult, error) {
 		d.ExpiresAt <= 0 || d.PollIntervalSec <= 0 {
 		return oauthInitResult{}, fmt.Errorf("bad init response")
 	}
-	authorizeURL, err := validateAuthorizeURL(d.AuthorizeURL)
+	finalURL, state, err := finalizeAuthorizeURL(d.AuthorizeURL)
 	if err != nil {
 		return oauthInitResult{}, err
 	}
@@ -1785,8 +1413,8 @@ func parseOAuthInit(body []byte, pollToken string) (oauthInitResult, error) {
 	return oauthInitResult{
 		flowID: d.FlowID, pollToken: pollToken,
 		pollURL:      oauthPollURLPrefix + url.PathEscape(d.FlowID),
-		authorizeURL: authorizeURL,
-		expiresAt:    expiresAt, pollInterval: interval,
+		authorizeURL: finalURL, state: state,
+		expiresAt: expiresAt, pollInterval: interval,
 	}, nil
 }
 
@@ -2248,14 +1876,8 @@ func startGoogleLogin() {
 		failLogin(gen, "Sign-in failed to start: "+err.Error())
 		return
 	}
-	// ZCode 3.12.x OAuth contract: init and poll carry ONLY the Bearer
-	// poll token and Content-Type — the ZCode header pack (User-Agent,
-	// X-Device-Mid, …) is rejected with code 3004 invalid_flow. This
-	// also means the flow needs nothing from the ZCode app — not even
-	// a device id — so sign-in works on machines without it.
-	initHeaders := http.Header{}
-	initHeaders.Set("Authorization", "Bearer "+pollToken)
-	_, raw, err := postJSON(oauthInitURL, initHeaders, map[string]string{"provider": "zai"})
+	deviceMid := storedDeviceMid()
+	_, raw, err := postJSON(oauthInitURL, zcodeHeaders(pollToken, deviceMid), map[string]string{"provider": "zai"})
 	if err != nil {
 		if !loginAlive(gen) {
 			return
@@ -2271,7 +1893,7 @@ func startGoogleLogin() {
 		failLogin(gen, "Sign-in failed to start: "+err.Error())
 		return
 	}
-	logDiagnostic("signin gen=%d browser opened flow=%s expires=%s", gen, initRes.flowID, initRes.expiresAt.Format("15:04:05"))
+	logDiagnostic("signin gen=%d browser opened state=%.8s expires=%s", gen, initRes.state, initRes.expiresAt.Format("15:04:05"))
 	shellOpen(initRes.authorizeURL)
 
 	for {
@@ -2282,17 +1904,17 @@ func startGoogleLogin() {
 			failLogin(gen, "Sign-in expired — press “Sign in with Google” to try again.")
 			return
 		}
-		// Poll immediately once, then honor the server-instructed
-		// interval between polls — sleeping first would add a full
-		// interval of dead time after the user finishes in the browser.
-		status, ready, retryable, err := oauthPoll(initRes.pollURL, initRes.pollToken)
+		time.Sleep(initRes.pollInterval)
+		if !loginAlive(gen) {
+			return
+		}
+		status, ready, retryable, err := oauthPoll(initRes.pollURL, initRes.pollToken, deviceMid)
 		if err != nil {
 			if !loginAlive(gen) {
 				return
 			}
 			if retryable {
 				logDiagnostic("signin gen=%d poll retry: %v", gen, err)
-				time.Sleep(initRes.pollInterval) // back off, never hot-spin
 				continue
 			}
 			failLogin(gen, "Sign-in polling failed: "+err.Error())
@@ -2300,7 +1922,6 @@ func startGoogleLogin() {
 		}
 		switch status {
 		case "pending":
-			time.Sleep(initRes.pollInterval)
 			continue
 		case "failed":
 			failLogin(gen, "Authorization failed in the browser — try again.")
@@ -2317,13 +1938,15 @@ func startGoogleLogin() {
 
 // oauthPoll polls one round. retryable reports whether the caller should
 // keep polling (network/5xx/408/429) instead of aborting the flow.
-// Like init, it authenticates with the Bearer poll token only.
-func oauthPoll(pollURL, pollToken string) (string, *oauthReady, bool, error) {
+func oauthPoll(pollURL, pollToken, deviceMid string) (string, *oauthReady, bool, error) {
 	req, err := http.NewRequest("GET", pollURL, nil)
 	if err != nil {
 		return "", nil, true, err
 	}
-	req.Header.Set("Authorization", "Bearer "+pollToken)
+	hdrs := zcodeHeaders(pollToken, deviceMid)
+	for k := range hdrs {
+		req.Header.Set(k, hdrs.Get(k))
+	}
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return "", nil, true, err
@@ -2421,15 +2044,8 @@ func main() {
 		fmt.Println("signed out: ZCode login keys cleared")
 		return
 	}
-	if containsArg(args, "--quit") {
-		// Headless close: shut down any running instance (tray-style
-		// graceful exit, force-kill fallback). Used by uninstallers.
-		closeRunningHUD()
-		return
-	}
 	if containsArg(args, "--preview") {
 		previewMode = true
-		previewLocked = containsArg(args, "--locked")
 		runHUD(containsArg(args, "--collapsed"), false)
 		return
 	}
@@ -2770,39 +2386,9 @@ func messageBox(title, text string) {
 	procMessageBoxW.Call(0, uintptr(unsafe.Pointer(x)), uintptr(unsafe.Pointer(t)), 0x00000040)
 }
 
-// previewEvent schedules one extra preview publish, delay after launch.
-type previewEvent struct {
-	delay time.Duration
-}
-
-// parsePreviewScript parses a comma-separated list of delays in
-// milliseconds ("1500,6000"). Malformed entries are skipped. Pure.
-func parsePreviewScript(spec string) []previewEvent {
-	var out []previewEvent
-	for _, part := range strings.Split(spec, ",") {
-		ms, err := strconv.Atoi(strings.TrimSpace(part))
-		if err != nil || ms <= 0 {
-			continue
-		}
-		out = append(out, previewEvent{delay: time.Duration(ms) * time.Millisecond})
-	}
-	return out
-}
-
-// loadPreviewScriptEnv applies harness overrides:
-// ZCODE_PREVIEW_SCRIPT (publish delays) and ZCODE_PREVIEW_LOCK_SECS.
-func loadPreviewScriptEnv() {
-	if s := os.Getenv("ZCODE_PREVIEW_SCRIPT"); s != "" {
-		previewScript = parsePreviewScript(s)
-	}
-	if v, err := strconv.Atoi(os.Getenv("ZCODE_PREVIEW_LOCK_SECS")); err == nil && v > 0 && v <= 60 {
-		lockWindowSecs = v
-	}
-}
-
 func previewSnapshot() Snapshot {
 	now := time.Now()
-	s := Snapshot{
+	return Snapshot{
 		Connected: true, SignedIn: true,
 		Email: "account@example.com", Name: "Preview User", UserID: "preview",
 		ServerTime: now, DeviceMid: "preview-mid", UpdatedAt: now,
@@ -2821,21 +2407,6 @@ func previewSnapshot() Snapshot {
 		Customer:  &Customer{ID: 12345678, CustomerNumber: "00000000000000000", EmailMasked: "ac****@example.com", UserType: "PERSONAL", Channel: "Z_AI", OrgName: "Default Org", ProjectName: "Default Project"},
 		QuotaNote: "No coding plan — Start Plan only",
 	}
-	if previewLocked && time.Since(previewLaunch) < time.Duration(lockWindowSecs)*time.Second {
-		// Same buckets as normal preview, all exhausted — a real
-		// exhausted account keeps its bucket list, so the expanded
-		// panel size never changes; only the lock state does.
-		s.Balances = []Balance{
-			{ShowName: "GLM-5.3", Total: 3000000, Used: 3000000, Remaining: 0, Available: 0,
-				Period: "monthly", PeriodStart: now.Add(-8 * time.Hour), PeriodEnd: now.Add(8 * time.Second),
-				ExpiresAt: now.Add(8 * time.Second)},
-			{ShowName: "GLM-5.3-Flash", Total: 5000000, Used: 5000000, Remaining: 0, Available: 0,
-				Period: "monthly", PeriodStart: now.Add(-8 * time.Hour), PeriodEnd: now.Add(8 * time.Second),
-				ExpiresAt: now.Add(8 * time.Second)},
-		}
-		s.QuotaNote = "All buckets exhausted (preview)"
-	}
-	return s
 }
 
 func nextMidnight(now time.Time) time.Time {
@@ -2850,20 +2421,6 @@ func runHUD(startCollapsed, fromStartup bool) {
 		publishSnapshot(previewSnapshot())
 	} else {
 		go refreshNow()
-	}
-	if previewMode && previewLocked {
-		loadPreviewScriptEnv()
-		previewLaunch = time.Now()
-		// Re-publish once the window exists (arms flash then
-		// collapse), and again after the buckets refill (arms
-		// the expand-back transition).
-		lockDur := time.Duration(lockWindowSecs) * time.Second
-		time.AfterFunc(600*time.Millisecond, func() { publishSnapshot(previewSnapshot()) })
-		time.AfterFunc(lockDur+400*time.Millisecond, func() { publishSnapshot(previewSnapshot()) })
-		for _, ev := range previewScript {
-			ev := ev
-			time.AfterFunc(ev.delay, func() { publishSnapshot(previewSnapshot()) })
-		}
 	}
 	logDiagnostic("launch version=%s startup=%t collapsed=%t preview=%t", appVersion, fromStartup, startCollapsed, previewMode)
 
@@ -2893,7 +2450,10 @@ func runHUD(startCollapsed, fromStartup bool) {
 		}
 	}
 	if !previewMode {
-		go refreshNow()
+		go func() {
+			time.Sleep(1500 * time.Millisecond)
+			refreshNow()
+		}()
 	}
 	runWindow(startCollapsed)
 	if instanceMutex != 0 {
@@ -2960,7 +2520,6 @@ func runWindow(startCollapsed bool) {
 	if startCollapsed {
 		collapseHUD()
 	}
-	loadAccentPref()
 	procSetTimer.Call(hwnd, 1, 1000, 0)
 	procSetTimer.Call(hwnd, 2, 60000, 0)
 	// Sign-in watcher: while the account is unusable, poll fast and pick
@@ -3121,9 +2680,6 @@ func wndProc(hwnd uintptr, msg uint32, wParam, lParam uintptr) uintptr {
 			restackExpanded()
 		}
 		checkUnlockNotification()
-		if wParam == TIMER_ANIM && stepAnimation() {
-			return 0
-		}
 		if wParam == 1 && snapshotNeedsOneSecondPaint() {
 			invalidateDynamicRegions(hwnd)
 		}
@@ -3131,7 +2687,6 @@ func wndProc(hwnd uintptr, msg uint32, wParam, lParam uintptr) uintptr {
 	case WM_APP_REFRESH:
 		atomic.StoreInt32(&refreshPosted, 0)
 		resizeForSnapshot()
-		enterCooldownOrExpand()
 		checkUnlockNotification()
 		flushToastQueue()
 		procInvalidateRect.Call(hwnd, 0, 0)
@@ -3144,7 +2699,6 @@ func wndProc(hwnd uintptr, msg uint32, wParam, lParam uintptr) uintptr {
 		procKillTimer.Call(hwnd, 1)
 		procKillTimer.Call(hwnd, 2)
 		procKillTimer.Call(hwnd, 3)
-		procKillTimer.Call(hwnd, TIMER_ANIM)
 		procPostQuitMessage.Call(0)
 		return 0
 	}
@@ -3352,12 +2906,7 @@ func checkUnlockNotification() {
 		showTrayNotification("ZCode tokens available again", body)
 		lastWasLocked = false
 		lastUnlockAt = time.Time{}
-		if !previewMode {
-			// A real unlock means real fresh data. Preview mode must
-			// keep its fabricated snapshot: refreshNow would replace
-			// it with whatever the live API returns (signed-out).
-			go refreshNow()
-		}
+		go refreshNow()
 	}
 }
 
@@ -3398,7 +2947,7 @@ func paint(hwnd uintptr) {
 		procEndPaint.Call(hwnd, uintptr(unsafe.Pointer(&ps)))
 	}()
 
-	bg := createBrush(accentColor(rgb(13, 14, 17)))
+	bg := createBrush(rgb(13, 14, 17))
 	defer procDeleteObject.Call(bg)
 	procFillRect.Call(hdc, uintptr(unsafe.Pointer(&rc)), bg)
 	procSetBkMode.Call(hdc, TRANSPARENT)
@@ -3410,12 +2959,6 @@ func paint(hwnd uintptr) {
 	now := time.Now()
 
 	if collapsed {
-		if anim.phase == "flash" {
-			// The bar pulses its background before shrinking to
-			// the cooldown strip; the text stays steady.
-			flashOverlay(hdc, rc, anim.visible)
-			return
-		}
 		paintCollapsed(hdc, rc, s, now)
 		return
 	}
@@ -3482,7 +3025,7 @@ func paint(hwnd uintptr) {
 		drawText(hdc, fontSection, rgb(230, 230, 235), "CONNECT TO ZCODE", margin+14, y+12, contentRight-14, y+34, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
 		msg := s.Error
 		if msg == "" {
-			msg = "Not signed in yet — use the button below or the tray menu."
+			msg = "Reading %USERPROFILE%\\.zcode\\v2\\credentials.json…"
 		}
 		drawText(hdc, fontBody, rgb(207, 207, 214), msg, margin+14, y+42, contentRight-14, y+68, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 		drawText(hdc, fontSmall, rgb(125, 125, 137), "Opens Z.AI login in your browser — choose Google there.", margin+14, y+72, contentRight-14, y+94, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
@@ -3589,7 +3132,6 @@ func paint(hwnd uintptr) {
 
 	footer := connectionFooter(s)
 	drawText(hdc, fontSmall, rgb(126, 132, 146), footer, margin, rc.Bottom-26, contentRight, rc.Bottom-6, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
-
 }
 
 func drawCompactStatusCountdown(hdc uintptr, color uint32, d time.Duration, left, top, right, bottom int32) {
@@ -4273,10 +3815,11 @@ func cloneSnapshot(s Snapshot) Snapshot {
 	return c
 }
 
-// expandedClientHeight computes the expanded panel's client height for
-// a snapshot, clamped to the work area (shared by resizeForSnapshot and
-// the expand-from-strip transition).
-func expandedClientHeight(s Snapshot) int32 {
+func resizeForSnapshot() {
+	dataMu.RLock()
+	s := cloneSnapshot(currentSnapshot)
+	dataMu.RUnlock()
+
 	clientH := int32(300)
 	if s.Connected && s.SignedIn {
 		clientH = 76 + 94 + 30
@@ -4309,21 +3852,11 @@ func expandedClientHeight(s Snapshot) int32 {
 	if clientH < 300 {
 		clientH = 300
 	}
-	return clientH
-}
-
-func resizeForSnapshot() {
-	dataMu.RLock()
-	s := cloneSnapshot(currentSnapshot)
-	dataMu.RUnlock()
-	clientH := expandedClientHeight(s)
-	// Skipped applications must NOT advance winHeight: the recorded
-	// height would desync from the real window and the pending resize
-	// would be lost once the animation ends.
-	if collapsed || anim.phase != "" || clientH == winHeight {
+	changed := clientH != winHeight
+	winHeight = clientH
+	if collapsed || !changed {
 		return
 	}
-	winHeight = clientH
 	if snapped {
 		snapToCorner()
 	} else {
@@ -4423,13 +3956,9 @@ func collapsedGeometryEx() (x, y, w, h int32, companions []RECT) {
 		}
 	}
 	h = collapsedPanelHeight(collapsedPreviewRowCount(snap), taskbarH)
-	if inCooldown && anim.phase == "" {
-		// Cooldown mode shows the original Codex-HUD bar size.
-		w, h = cooldownDimensions(taskbarH)
-	}
 	x = wa.Right - w
 	y = wa.Bottom - h
-	// A companion HUD may park its own collapsed strip on this exact
+	// The installed Codex HUD parks its own collapsed strip on this exact
 	// rectangle. Stack above any visible companion window instead of
 	// covering it.
 	companions = visibleCompanionRects()
@@ -4439,7 +3968,7 @@ func collapsedGeometryEx() (x, y, w, h int32, companions []RECT) {
 }
 
 // visibleCompanionRects returns the screen rects of visible companion HUD
-// windows. Hidden or degenerate windows are ignored.
+// windows (Codex HUD builds). Hidden or degenerate windows are ignored.
 func visibleCompanionRects() []RECT {
 	var out []RECT
 	for _, class := range companionHUDClasses {
@@ -4509,7 +4038,7 @@ func stackAboveRect(base RECT, obstacles []RECT, gap, minY int32) RECT {
 // companion appears, moves, expands, collapses, or exits. SetWindowPos is
 // only issued when the rect actually changed.
 func restackCollapsed() {
-	if hwndMain == 0 || !collapsed || anim.phase != "" {
+	if hwndMain == 0 || !collapsed {
 		return
 	}
 	x, y, w, h, companions := collapsedGeometryEx()
@@ -4528,7 +4057,7 @@ func restackCollapsed() {
 // never runs while the user is dragging the panel (snapped=false) and
 // only issues SetWindowPos when the rect actually changed.
 func restackExpanded() {
-	if hwndMain == 0 || collapsed || !snapped || anim.phase != "" {
+	if hwndMain == 0 || collapsed || !snapped {
 		return
 	}
 	var wa RECT
@@ -4581,7 +4110,7 @@ func snapToCorner() {
 	procSystemParametersInfoW.Call(SPI_GETWORKAREA, 0, uintptr(unsafe.Pointer(&wa)), 0)
 	x := wa.Right - winWidth - 10
 	y := wa.Bottom - winHeight - 10
-	// Expanded mode stacks too: a companion HUD (strip or full panel) sits
+	// Expanded mode stacks too: the Codex HUD (strip or full panel) sits
 	// in the same notification-area corner, and covering it hides the
 	// other tool entirely.
 	base := RECT{Left: x, Top: y, Right: x + winWidth, Bottom: y + winHeight}
@@ -4607,7 +4136,6 @@ func showMenu(hwnd uintptr) {
 		}
 	}
 	appendMenu(menu, MF_STRING, ID_SHOWHIDE, showText)
-	appendMenu(menu, MF_STRING, ID_PICKCOLOR, "HUD color...")
 	appendMenu(menu, MF_STRING, ID_REFRESH, "Refresh now")
 	appendMenu(menu, MF_STRING, ID_SNAP, "Snap to notification-area corner")
 	appendMenu(menu, MF_SEPARATOR, 0, "")
@@ -4668,8 +4196,6 @@ func handleCommand(hwnd uintptr, id int) {
 		go importZCodeAppSession()
 	case ID_LOGOUT:
 		go signOut()
-	case ID_PICKCOLOR:
-		pickHUDColor()
 	case ID_SHOWHIDE:
 		toggleHUD()
 	case ID_EXIT:
@@ -4862,20 +4388,7 @@ func credsModTime() time.Time {
 	return fi.ModTime()
 }
 
-// uuidv4 mints a random RFC 4122 version-4 UUID (crypto/rand).
-func uuidv4() (string, error) {
-	var b [16]byte
-	if _, err := rand.Read(b[:]); err != nil {
-		return "", err
-	}
-	b[6] = (b[6] & 0x0f) | 0x40
-	b[8] = (b[8] & 0x3f) | 0x80
-	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
-		b[0:4], b[4:6], b[6:8], b[8:10], b[10:16]), nil
-}
-
-// storedDeviceMid reads the device id the ZCode app records in its
-// telemetry state. Empty when the app was never installed or never ran.
+// storedDeviceMid reads the device id ZCode uses in API headers.
 func storedDeviceMid() string {
 	raw, err := os.ReadFile(filepath.Join(zcodeDir(), "telemetry-state.json"))
 	if err != nil {
@@ -4887,84 +4400,7 @@ func storedDeviceMid() string {
 	if json.Unmarshal(raw, &t) != nil {
 		return ""
 	}
-	return strings.TrimSpace(t.DeviceMid)
-}
-
-// deviceIDPath stores the HUD's own device id. It lives in the HUD's
-// data dir so the identifier follows the same lifecycle as the session.
-func deviceIDPath() string {
-	return filepath.Join(appDataDir(), "device-id.json")
-}
-
-// loadDeviceIDAt reads a previously persisted HUD device id.
-func loadDeviceIDAt(path string) string {
-	raw, err := os.ReadFile(path)
-	if err != nil {
-		return ""
-	}
-	var d struct {
-		DeviceID string `json:"device_id"`
-	}
-	if json.Unmarshal(raw, &d) != nil {
-		return "" // corrupt store — treat as absent and regenerate
-	}
-	return strings.TrimSpace(d.DeviceID)
-}
-
-// saveDeviceIDAt persists the HUD device id (best effort; the server
-// treats the header as opaque telemetry, so losing it costs only a
-// fresh identifier next launch).
-func saveDeviceIDAt(path, id string) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
-		return err
-	}
-	out, err := json.MarshalIndent(map[string]string{"device_id": id}, "", "  ")
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(path, append(out, '\n'), 0600)
-}
-
-// resolveDeviceIDAt is the store-backed decision used by deviceMid.
-// appID (the ZCode app's id, when the app is present) wins; otherwise
-// the HUD persists and reuses its own UUID, because billing/balance
-// rejects requests without the X-Device-Mid header and the server
-// accepts any identifier.
-func resolveDeviceIDAt(path, appID string) (string, bool, error) {
-	if appID = strings.TrimSpace(appID); appID != "" {
-		return appID, false, nil
-	}
-	if id := loadDeviceIDAt(path); id != "" {
-		return id, false, nil
-	}
-	id, err := uuidv4()
-	if err != nil {
-		return "", false, err
-	}
-	if err := saveDeviceIDAt(path, id); err != nil {
-		return id, true, err
-	}
-	return id, false, nil
-}
-
-// deviceMid is the X-Device-Mid value for every ZCode API call:
-// the ZCode app's device id when the app is present, otherwise a
-// HUD-owned UUID minted once and persisted. Never returns empty for
-// network use — a per-launch UUID keeps requests well-formed even if
-// persistence fails.
-func deviceMid() string {
-	id, persisted, err := resolveDeviceIDAt(deviceIDPath(), storedDeviceMid())
-	if err != nil {
-		logDiagnostic("device id fallback (%v); using per-launch id", err)
-		if id == "" {
-			id, _ = uuidv4()
-		}
-		return id
-	}
-	if persisted {
-		logDiagnostic("minted HUD device id %s", id)
-	}
-	return id
+	return t.DeviceMid
 }
 
 const (

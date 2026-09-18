@@ -1,20 +1,17 @@
-ZCode Usage HUD v1.5.0
+ZCode Usage HUD v1.2.0
 ======================
 
-OPEN SOURCE AND INDEPENDENT
-This project is released under the MIT License. You may fork, modify, build,
-redistribute, and contribute to it. It is not affiliated with, sponsored by,
-or endorsed by ZCode or Z.AI.
-
-Always-on-top ZCode usage HUD that reads ZCode's own data sources:
+Codex-style console for ZCode. Same always-on-top HUD concept as
+Codex Usage HUD v3.3.x, but it reads ZCode's own data sources instead
+of the Codex app-server:
 
 CONNECTED / SYNCED
   dot + email + active plan name, footer with sync time.
 
 STATUS PANEL
   AVAILABLE (green) or TOKENS EXHAUSTED (orange) computed from the
-  real token buckets. Locked state counts down to the next recurring
-  refill (bucket PeriodEnd); unlock triggers a tray notification.
+  daily token buckets. Locked state counts down to the refill
+  (bucket PeriodEnd); unlock triggers a tray notification.
 
 TOKEN BUCKET CARDS (one per billing/balance bucket)
   GLM-5.3 / GLM-5.3-Flash (today: Start Plan = 3,000,000 + 5,000,000):
@@ -91,9 +88,7 @@ DATA SOURCES (all stats the app could find)
   the HUD's OWN login (same enc:v1 envelope + key layout as ZCode, but
   a separate file). A fresh install therefore starts signed out — it
   never attaches to the ZCode app's session by itself. deviceMid is
-  the ZCode app's telemetry id when the app is present, otherwise a
-  HUD-owned UUID persisted in device-id.json (the billing API rejects
-  requests without it — any id is accepted, so the HUD works app-free).
+  still read from the ZCode telemetry file (device id, not a secret).
   "Use ZCode app's session" (tray menu) copies the app's tokens over
   explicitly on request.
 
@@ -115,8 +110,7 @@ SIGN-IN (real Google flow, no dead ends)
     the app (extra ZCode headers break this endpoint); failures log
     a secret-masked response to hud.log.
   The button/menu item toggles to "Cancel sign-in" while waiting, and
-  a 15s watcher notices changes to the HUD's own credential store, including
-  an explicit "Use ZCode app's session" import.
+  a 15s sign-in watcher still picks up sign-ins done in the ZCode app.
 
 SIGN-OUT
   Right-click menu "Sign out" cancels any pending login, deletes the
@@ -124,7 +118,7 @@ SIGN-OUT
   The ZCode app's separate session is never touched.
   ZCode-Usage-HUD.exe --logout does the same headlessly.
 
-BEHAVIOR
+BEHAVIOR (mirrors Codex HUD)
   Minimize collapses to a compact panel listing EVERY pool as a
   stacked full-width row, no abbreviations: the full model name on the
   left with its quota kind right-aligned — "PROMO" in blue for one-time
@@ -141,31 +135,18 @@ BEHAVIOR
   (one-time pools never count as refill sources). Signed-out state
   distinguishes "SIGN IN" from "OFFLINE" (API unreachable).
   Close exits.
-  Companion-aware stacking everywhere: the collapsed strip parks directly
-  above a detected companion HUD window instead of overlapping it, and the snapped
+  Codex-aware stacking everywhere: the collapsed strip parks directly
+  above the installed Codex HUD window (CodexUsageHUDV3, incl. its
+  preview/legacy classes) instead of overlapping it, and the snapped
   expanded panel stacks above the companion too — both default to the
   same notification-area corner. A 1s restack follows the companion
   when it appears, moves, expands, collapses, or exits in either mode;
   dragging the expanded panel unhooks it (Snap re-hooks), and touching
   edges count as settled so the position is stable.
-  Tray icon + right-click menu: Refresh now, Snap, HUD color..., Open ZCode
-  folder, Start with Windows (compact), Exit. "HUD color..." opens the standard
-  Windows color picker; the choice recolors the HUD panels, applies immediately,
-  and persists in %LOCALAPPDATA%\ZCode Usage HUD\accent.json until changed.
-  1s countdown repaint, 60s
+  Tray icon + right-click menu: Refresh now, Snap, Open ZCode folder,
+  Start with Windows (compact), Exit. 1s countdown repaint, 60s
   API refresh, single instance per session, topmost snap to
   notification-area corner, --preview mode with fake buckets.
-
-COOLDOWN MODE (minimized bar only)
-  When every bucket is exhausted (computeUnlock locked), the MINIMIZED bar
-  pulses its background under a steady "LIMIT REACHED" five times slowly
-  (550ms on / 550ms off), then eases down (ease-in-out cubic, 160ms) to the
-  original Codex-HUD bar size (240 wide, taskbar height) — there are no
-  percentage bars left to display. When buckets refill, it eases back open to
-  fit all gauges and buckets. The EXPANDED view is never resized or alarmed by
-  cooldown state.
-  Collapse/expand transitions are animated everywhere — no snapping, and the
-  restacker never fights a running animation.
 
 BUILD
   Target: Windows x86-64 GUI PE
@@ -186,16 +167,12 @@ DIAGNOSTICS
   ZCode-Usage-HUD.exe --dump prints the live fetched snapshot as JSON
   without opening a window. Stacking decisions are logged to
   %LOCALAPPDATA%\ZCode Usage HUD\hud.log ("stack collapse/restack").
-  ZCode-Usage-HUD.exe --preview opens a synthetic UI preview without
-  signing in. ZCode-Usage-HUD.exe --logout clears the HUD session, and
-  --uninstall removes a self-installed copy.
-  --quit closes an already-running instance (used by the uninstaller).
 
 PRIVACY & SECURITY
   Where your data lives:
     - The HUD's session is %LOCALAPPDATA%\ZCode Usage HUD\
-      credentials.json (AES-256-GCM "enc:v1" envelope, with a key derived
-      from the current Windows user's profile and username; any process
+      credentials.json (AES-256-GCM "enc:v1" envelope, machine-local
+      key — the same scheme the ZCode app itself uses; any process
       running as your Windows user can read it, exactly like the app's
       own store). A fresh install starts signed out — it never attaches
       to the ZCode app's session and never reads or writes
@@ -216,8 +193,7 @@ PRIVACY & SECURITY
     not used by the app.
 
 DEV SCRIPTS (not part of the shipped exe)
-  scripts/dev/test_api.py, probe_full.py, probe_params.py and
-  inspect_tokens.py
+  test_api.py / probe_full.py / probe_params.py / inspect_tokens.py
   are manual exploration scripts used to reverse-engineer the Z.AI
   endpoints. They read credentials from the local machine at runtime,
   hit hardcoded public API hosts only (zcode.z.ai, api.z.ai), and are
