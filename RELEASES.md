@@ -1,9 +1,8 @@
-# Releases and workspace layout
+# Releases & workspace layout
 
 ## Version history
 
-- **v1.5.0** (2026-09-18) — upgrades and uninstall now close the HUD without
-  prompting (`--quit`
+- **v1.5.0** (2026-09-18) — no-prompt close-on-uninstall/upgrade (`--quit`
   handoff + native in-installer close; AppMutex/CloseApplications removed),
   animations 320→160 ms @ 60 fps. Notice: `RELEASE_NOTES_v1.5.0.md`.
 - **v1.4.0** (2026-09-18) — color picker, cooldown mode with LIMIT REACHED
@@ -16,8 +15,8 @@
 
 ## Versioned release folders
 
-Keep each installer build in its own versioned folder. Do not mix releases in
-one directory or leave a flat pile of installers:
+Every installer build lands in its own folder named after the version —
+no flat piles, no mixing versions:
 
 ```
 releases/
@@ -28,7 +27,7 @@ releases/
       ZCode-Usage-HUD-v1.2.0-Setup.exe
 ```
 
-The installer script writes directly to the right folder — `OutputDir`
+The installer script writes straight into the right folder — `OutputDir`
 in `installer/zcode-hud.iss` is `..\releases\v{#MyAppVersion}`, so a
 version bump re-files the output automatically. `releases/` is
 gitignored; installers are attached to GitHub Releases instead of being
@@ -56,16 +55,16 @@ tracked.
 
 4. The setup exe appears in `releases\v<version>\`.
 5. **Payload-freshness check (mandatory):** every file the ISS packs
-   (`ZCode-Usage-HUD.exe`, `README.txt`) must be older than the setup
-   executable's `LastWriteTime`. Recompile with ISCC if either payload was
-   touched afterward. This prevents shipping fresh source with stale installer
-   contents.
+   (`ZCode-Usage-HUD.exe`, `README.txt`) must be OLDER than the setup
+   exe's LastWriteTime. Recompile ISCC if any payload was touched after
+   it — a stale setup shipped a corrected binary behind stale docs once
+   (and a stale binary behind a fixed source once before that).
 6. Move superseded installers into `releases\archive\v<old>\` rather
    than deleting them.
 
 ## Dev scripts
 
-`scripts/dev/` contains the tools that are not part of the shipped executable:
+`scripts/dev/` holds everything that is not part of the shipped exe:
 
 - `test_api.py`, `probe_full.py`, `probe_params.py`, `inspect_tokens.py`
   — manual API exploration used to reverse-engineer the Z.AI endpoints

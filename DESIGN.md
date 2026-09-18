@@ -1,9 +1,10 @@
 # DESIGN.md — ZCode Usage HUD
 
-The HUD is a compact, always-on-top Windows widget, so its design uses a
-near-black canvas, fine panel borders, and a restrained set of accent colors.
-Tokens below are the single source of truth for the renderer's palette
-(`col*` vars in `main.go`).
+Adopted from the **Linear.app** design reference (awesome-design-md library).
+The HUD is a compact, always-on-top Windows widget, so the translation keeps
+Linear's near-black canvas + hairline-panel language and its restrained use
+of chromatic accents. Tokens below are the single source of truth for the
+renderer's palette (`col*` vars in `main.go`).
 
 ## Colors
 

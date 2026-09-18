@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ZCode Usage HUD — a clear view of your Windows quotas</title>
+<title>ZCode Usage HUD — Linear-tier quota awareness for Windows</title>
 <meta name="description" content="An always-on-top Windows HUD for ZCode token quotas. Standalone sign-in, live bucket tracking, promo-grant countdowns. Open source, zero telemetry.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%23050505'/%3E%3Ccircle cx='8' cy='8' r='3.2' fill='%2327a644'/%3E%3C/svg%3E">
@@ -183,9 +183,9 @@ footer{padding:6rem 6vw 4rem;max-width:1400px;margin:0 auto;border-top:1px solid
       <div>
         <h1 class="reveal reveal-d1">Your ZCode quota,<br><span class="grad">always in view.</span></h1>
         <p class="hero-sub reveal reveal-d2">
-          A compact Windows HUD that tracks every token bucket, promo grant, and
-          refill window. It has its own sign-in, so it works whether or not the
-          ZCode app is installed.
+          A quietly confident Windows HUD that sits above your tray and tracks every
+          token bucket, promo grant, and refill window — with its own standalone sign-in,
+          so it works whether or not the ZCode app is installed.
         </p>
         <div class="hero-cta reveal reveal-d3">
           <a class="btn btn-primary" href="#install">Get the HUD
@@ -209,9 +209,8 @@ footer{padding:6rem 6vw 4rem;max-width:1400px;margin:0 auto;border-top:1px solid
   <section class="section" id="features">
     <div class="section-head reveal">
       <span class="eyebrow">Capabilities</span>
-      <h2>See what your metered plans<br>leave out.</h2>
-      <p>It uses the same dark-panel language as the HUD itself: a near-black
-        canvas, fine borders, and one accent color where it matters.</p>
+      <h2>Everything the metered plans<br>don't tell you.</h2>
+      <p>Built from the same dark-panel language as the HUD itself: near-black canvas, hairline borders, one accent where it means something.</p>
     </div>
 
     <div class="bento">
@@ -220,10 +219,7 @@ footer{padding:6rem 6vw 4rem;max-width:1400px;margin:0 auto;border-top:1px solid
         <div class="card-inner">
           <div>
             <h3>Per-bucket truth, not averages</h3>
-            <p>Every quota from the billing API gets its own card — DAILY,
-              WEEKLY, MONTHLY, or one-time PROMO — with used/left totals, exact
-              local refill times, and an amber warning when a promo pool expires
-              instead of refilling.</p>
+            <p>Every quota the billing API returns gets its own card — DAILY, WEEKLY, MONTHLY, or one-time PROMO — with used/left math, exact local refill timestamps, and an amber warning when a promo pool expires instead of refilling.</p>
           </div>
           <div class="strip-demo">
             <span class="strip-accent"></span>
@@ -237,8 +233,7 @@ footer{padding:6rem 6vw 4rem;max-width:1400px;margin:0 auto;border-top:1px solid
       <article class="card span-4 reveal reveal-d1">
         <div class="card-inner">
           <h3>A strip, not a window</h3>
-          <p>Collapse to a slim always-on-top strip with one full-width row per
-            bucket — easy to glance at without taking over your desktop.</p>
+          <p>Collapse to a slim always-on-top strip that stacks full-width rows per bucket — glanceable without stealing desktop.</p>
           <figure class="shell" style="margin-top:1.6rem;padding:.4rem;border-radius:1.1rem">
             <div class="shell-inner">
               <img src="screenshots/zcode-usage-hud-compact.png" alt="Compact strip view" width="340" height="142">
@@ -251,9 +246,7 @@ footer{padding:6rem 6vw 4rem;max-width:1400px;margin:0 auto;border-top:1px solid
       <article class="card span-5 reveal">
         <div class="card-inner">
           <h3>Standalone sign-in</h3>
-          <p>Browser-based Google OAuth through Z.AI — no ZCode app required.
-            The HUD stores its own device identity when the app is absent, and
-            uses the app's when it is present.</p>
+          <p>Browser-based Google OAuth through Z.AI — no ZCode app required. The HUD mints and stores its own device identity when the app is absent, then defers to the app's when present.</p>
           <div class="feat"><span class="feat-ic"><svg viewBox="0 0 16 16"><path d="M8 2v6m0 0 3-3M8 8 5 5M3 11v2h10v-2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <div><b>Works app-free</b><span>self-managed device ID, persisted locally</span></div></div>
           <div class="feat"><span class="feat-ic"><svg viewBox="0 0 16 16"><rect x="3" y="6" width="10" height="7" rx="1.5"/><path d="M5.5 6V4.5a2.5 2.5 0 0 1 5 0V6" stroke-linecap="round"/></svg></span>
@@ -265,9 +258,7 @@ footer{padding:6rem 6vw 4rem;max-width:1400px;margin:0 auto;border-top:1px solid
       <article class="card span-7 reveal reveal-d1">
         <div class="card-inner">
           <h3>Promo grants, counted down to activation</h3>
-          <p>Accepted but not yet spendable grants get their own section:
-            activation countdown, grant size, covered models, and the exact
-            moment the offer window closes.</p>
+          <p>Accepted-but-not-yet-spendable grants get their own section — activation countdown, grant size, covered models, and the exact moment the offer window closes.</p>
           <div class="term mono" style="margin-top:1.4rem">
             <span class="ln"><span class="c-dim">$</span> zcode-usage-hud <span class="c-key">--dump</span></span>
             <span class="ln"><span class="c-dim">{</span></span>
@@ -282,7 +273,7 @@ footer{padding:6rem 6vw 4rem;max-width:1400px;margin:0 auto;border-top:1px solid
       <!-- stats band -->
       <article class="card span-12 reveal">
         <div class="card-inner" style="display:flex;flex-direction:column;gap:1.6rem">
-          <h3>Small, focused, and self-contained</h3>
+          <h3>Engineered like the HUD it ships</h3>
           <div class="stat-row">
             <div class="stat"><b>~9.6 MB</b><span>single executable</span></div>
             <div class="stat"><b>0</b><span>runtime dependencies</span></div>
@@ -300,13 +291,13 @@ footer{padding:6rem 6vw 4rem;max-width:1400px;margin:0 auto;border-top:1px solid
   <section class="section" id="install" style="padding-top:2rem">
     <div class="section-head reveal">
       <span class="eyebrow">Install</span>
-      <h2>Install it in two minutes.</h2>
+      <h2>Two minutes, one installer.</h2>
     </div>
     <div class="bento" style="margin-top:3rem">
       <article class="card span-7 reveal">
         <div class="card-inner">
           <h3>Installer</h3>
-          <p>Download <a href="https://github.com/Void-Man-1/zcode-usage-hud/releases/latest/download/ZCode-Usage-HUD-v1.5.0-Setup.exe"><span class="mono" style="font-size:.85em">ZCode-Usage-HUD-v1.5.0-Setup.exe</span></a> from the project's releases and run it. It installs per-user under <span class="mono" style="font-size:.85em">%LOCALAPPDATA%\Programs</span> and can register Start-with-Windows if you choose.</p>
+          <p>Grab <a href="https://github.com/Void-Man-1/zcode-usage-hud/releases/latest/download/ZCode-Usage-HUD-v1.5.0-Setup.exe"><span class="mono" style="font-size:.85em">ZCode-Usage-HUD-v1.5.0-Setup.exe</span></a> from the project's releases, run it — it installs per-user under <span class="mono" style="font-size:.85em">%LOCALAPPDATA%\Programs</span> and registers Start-with-Windows if you ask it to.</p>
         </div>
       </article>
       <article class="card span-5 reveal reveal-d1">
