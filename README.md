@@ -31,6 +31,10 @@ ZCode usage without opening the ZCode app itself. It stays on top of other
 windows, shows how much of each token pool remains, and can sit neatly above
 an installed companion HUD.
 
+> **Project status:** This project is still being refined and fine-tuned.
+> Features, wording, and compatibility details may continue to change as the
+> HUD is tested and improved.
+
 **In one sentence:** ZCode Usage HUD is an independent Windows desktop
 application that displays ZCode/Z.AI token quotas, reset times, promotions,
 and account status in a compact always-on-top dashboard.
