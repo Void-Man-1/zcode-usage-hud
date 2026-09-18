@@ -51,7 +51,7 @@ nav{
 nav a{color:var(--ink-sub);text-decoration:none;font-size:.82rem;font-weight:500;transition:color .5s var(--ease)}
 nav a:hover{color:var(--ink)}
 .brand{display:flex;align-items:center;gap:.55rem;color:var(--ink);font-weight:500;font-size:.88rem;letter-spacing:.01em}
-.brand-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px rgba(39,166,68,.8)}
+.brand-dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
 
 /* ---------- hero ---------- */
 .hero{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:9rem 6vw 6rem;max-width:1400px;margin:0 auto}
@@ -60,7 +60,7 @@ nav a:hover{color:var(--ink)}
   font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-sub);font-weight:500;width:max-content}
 .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:5rem;align-items:center;margin-top:3.2rem}
 h1{font-size:clamp(3.2rem,6.5vw,5.6rem);line-height:1.02;letter-spacing:-.03em}
-h1 .grad{background:linear-gradient(135deg,var(--ink) 30%,var(--lav));-webkit-background-clip:text;background-clip:text;color:transparent}
+h1 .grad{color:var(--lav)}
 .hero-sub{margin-top:1.8rem;font-size:1.08rem;color:var(--ink-sub);max-width:34rem;font-weight:300}
 .hero-cta{margin-top:2.8rem;display:flex;gap:1rem;flex-wrap:wrap}
 
@@ -68,7 +68,7 @@ h1 .grad{background:linear-gradient(135deg,var(--ink) 30%,var(--lav));-webkit-ba
 .btn{display:inline-flex;align-items:center;gap:.9rem;padding:.55rem .6rem .55rem 1.6rem;border-radius:999px;
   font-size:.92rem;font-weight:500;text-decoration:none;cursor:pointer;border:none;
   transition:transform .7s var(--ease),background .7s var(--ease),box-shadow .7s var(--ease)}
-.btn-primary{background:linear-gradient(135deg,var(--lav-deep),#7381e8);color:#fff;box-shadow:0 12px 40px -12px rgba(94,106,210,.55)}
+.btn-primary{background:var(--lav-deep);color:#fff;box-shadow:0 8px 24px -16px rgba(0,0,0,.8)}
 .btn-ghost{background:rgba(255,255,255,.05);color:var(--ink);border:1px solid var(--hairline);backdrop-filter:blur(8px)}
 .btn:hover{transform:translateY(-1px)}
 .btn:active{transform:scale(.98)}
@@ -128,7 +128,7 @@ h1 .grad{background:linear-gradient(135deg,var(--ink) 30%,var(--lav));-webkit-ba
 /* compact strip demo */
 .strip-demo{display:flex;align-items:center;gap:1.1rem;padding:1.05rem 1.35rem;border-radius:1rem;
   background:#0a0b0d;border:1px solid var(--hairline);margin-top:1.7rem}
-.strip-accent{width:3px;height:2.4rem;border-radius:2px;background:var(--green);box-shadow:0 0 14px rgba(39,166,68,.7)}
+.strip-accent{width:3px;height:2.4rem;border-radius:2px;background:var(--green)}
 .strip-meta{font-size:.78rem;color:var(--ink-sub)}
 .strip-pct{margin-left:auto;font-family:'JetBrains Mono';font-size:1.05rem;color:#a9e8b5}
 
@@ -178,7 +178,7 @@ footer{padding:6rem 6vw 4rem;max-width:1400px;margin:0 auto;border-top:1px solid
 
   <!-- ================= HERO ================= -->
   <header class="hero">
-    <span class="eyebrow reveal">Open source · v1.2.2 · Windows</span>
+    <span class="eyebrow reveal">Open source · v1.5.0 · Windows</span>
     <div class="hero-grid">
       <div>
         <h1 class="reveal reveal-d1">Your ZCode quota,<br><span class="grad">always in view.</span></h1>
@@ -191,7 +191,7 @@ footer{padding:6rem 6vw 4rem;max-width:1400px;margin:0 auto;border-top:1px solid
           <a class="btn btn-primary" href="#install">Get the HUD
             <span class="btn-icon"><svg viewBox="0 0 16 16"><path d="M4 8h8M8.5 4.5 12 8l-3.5 3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           </a>
-          <a class="btn btn-ghost" href="https://github.com/" >View source
+          <a class="btn btn-ghost" href="https://github.com/Void-Man-1/zcode-usage-hud">View source
             <span class="btn-icon"><svg viewBox="0 0 16 16"><path d="M6 3 3 8l3 5M10 3l3 5-3 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           </a>
         </div>
@@ -200,7 +200,7 @@ footer{padding:6rem 6vw 4rem;max-width:1400px;margin:0 auto;border-top:1px solid
         <div class="shell-inner">
           <img src="screenshots/zcode-usage-hud-expanded.png" alt="ZCode Usage HUD expanded view — token buckets, promo grant, account totals" width="720" height="958">
         </div>
-        <figcaption class="shell-caption"><span>expanded · live buckets</span><span class="mono">v1.2.2</span></figcaption>
+        <figcaption class="shell-caption"><span>expanded · live buckets</span><span class="mono">v1.5.0</span></figcaption>
       </figure>
     </div>
   </header>
@@ -297,15 +297,15 @@ footer{padding:6rem 6vw 4rem;max-width:1400px;margin:0 auto;border-top:1px solid
       <article class="card span-7 reveal">
         <div class="card-inner">
           <h3>Installer</h3>
-          <p>Grab <span class="mono" style="font-size:.85em">ZCode-Usage-HUD-v1.2.2-Setup.exe</span> from the project's releases, run it — it installs per-user under <span class="mono" style="font-size:.85em">%LOCALAPPDATA%\Programs</span> and registers Start-with-Windows if you ask it to.</p>
+          <p>Grab <a href="https://github.com/Void-Man-1/zcode-usage-hud/releases/latest/download/ZCode-Usage-HUD-v1.5.0-Setup.exe"><span class="mono" style="font-size:.85em">ZCode-Usage-HUD-v1.5.0-Setup.exe</span></a> from the project's releases, run it — it installs per-user under <span class="mono" style="font-size:.85em">%LOCALAPPDATA%\Programs</span> and registers Start-with-Windows if you ask it to.</p>
         </div>
       </article>
       <article class="card span-5 reveal reveal-d1">
         <div class="card-inner">
           <h3>From source</h3>
           <div class="term mono" style="margin-top:1rem">
-            <span class="ln"><span class="c-dim">$</span> git clone &lt;repo&gt; zcode-console</span>
-            <span class="ln"><span class="c-dim">$</span> <span class="c-key">cd</span> zcode-console</span>
+            <span class="ln"><span class="c-dim">$</span> git clone https://github.com/Void-Man-1/zcode-usage-hud.git</span>
+            <span class="ln"><span class="c-dim">$</span> <span class="c-key">cd</span> zcode-usage-hud</span>
             <span class="ln"><span class="c-dim">$</span> go build -trimpath -ldflags <span class="c-green">"-H=windowsgui -s -w"</span> .</span>
           </div>
         </div>
@@ -321,10 +321,10 @@ footer{padding:6rem 6vw 4rem;max-width:1400px;margin:0 auto;border-top:1px solid
       <p class="foot-note">Independent open-source project under the MIT License. Not affiliated with, sponsored by, or endorsed by ZCode or Z.AI. ZCode is a trademark of its respective owner.</p>
     </div>
     <div class="foot-links">
-      <a href="https://github.com/">GitHub</a>
+      <a href="https://github.com/Void-Man-1/zcode-usage-hud">GitHub</a>
       <a href="#features">Features</a>
       <a href="#install">Install</a>
-      <a href="https://github.com/">Report an issue</a>
+      <a href="https://github.com/Void-Man-1/zcode-usage-hud/issues/new">Report an issue</a>
     </div>
   </div>
 </footer>
