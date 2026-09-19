@@ -82,6 +82,10 @@ tracked.
   and uninstall while running; zero prompts.
 - `standby_timeline.ps1` — polls the window rect through the standby
   sequence for animation debugging.
+- `offline_check.ps1` — first-run/standalone proof: real-mode app with no
+  credentials and with a rejected JWT must stay alive, log clean, and exit
+  cleanly; paired with `--dump` assertions for SIGN IN / OFFLINE states.
+  NOTE: launching the bare exe without `--hud` means INSTALL, not run.
 - `behavior_check.ps1` — pixel-level render audit of the real exe in
   `--preview` mode.
 - `cooldown_check.ps1 -mode bar|expanded|interleave` — drives the full cooldown
