@@ -2586,11 +2586,13 @@ func runHUD(startCollapsed, fromStartup bool) {
 		mutexName = `Local\ZCodeUsageHUD-preview-v1`
 	}
 	name, _ := syscall.UTF16PtrFromString(mutexName)
-	h, _, _ := procCreateMutexW.Call(0, 0, uintptr(unsafe.Pointer(name)))
+	// The errno must come from THIS syscall: a separate GetLastError()
+	// call races goroutine migration and reads a stale (zero) error, which
+	// let a second launch create a duplicate HUD window.
+	h, _, callErr := procCreateMutexW.Call(0, 0, uintptr(unsafe.Pointer(name)))
 	if h != 0 {
 		instanceMutex = h
-		errCode, _, _ := procGetLastError.Call()
-		if errCode == ERROR_ALREADY_EXISTS {
+		if callErr == syscall.ERROR_ALREADY_EXISTS {
 			class := "ZCodeUsageHUDV1"
 			if previewMode {
 				class = "ZCodeUsageHUDPreviewV1"
