@@ -70,6 +70,18 @@ tracked.
 - `test_api.py`, `probe_full.py`, `probe_params.py`, `inspect_tokens.py`
   — manual API exploration used to reverse-engineer the Z.AI endpoints
   (documented in README.txt; they read local credentials at runtime).
+- `settings_check.ps1` — gear click opens the settings window; WM_CLOSE works.
+- `settings_clickthrough.ps1` — drives EVERY non-modal settings control
+  (steppers, toggle, set/clear home, refresh) via real posted clicks and
+  asserts each effect in settings.json.
+- `prefs_live_check.ps1` — writes settings.json directly and asserts the
+  live bar honors gauge style, home snap and bar-size override.
+- `theme_e2e.ps1` — full color loop: theme.json override renders on
+  startup, gear -> Return-to-the-void restores default grey live.
+- `install_e2e.ps1` — silent fresh install, upgrade over a running HUD,
+  and uninstall while running; zero prompts.
+- `standby_timeline.ps1` — polls the window rect through the standby
+  sequence for animation debugging.
 - `behavior_check.ps1` — pixel-level render audit of the real exe in
   `--preview` mode.
 - `cooldown_check.ps1 -mode bar|expanded|interleave` — drives the full cooldown

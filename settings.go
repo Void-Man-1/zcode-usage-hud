@@ -133,7 +133,6 @@ func settingsHitTest(x, y int32) int {
 }
 
 func setRect(id int, rc RECT) { setRects[id] = rc }
-func setHit(id int) RECT      { return setRects[id] }
 func hoverGlow(id int) bool   { return setHover == id }
 
 // sectionTitle paints one section header plus its divider line.

@@ -224,3 +224,54 @@ func TestSettingsIDsNoCollision(t *testing.T) {
 		t.Fatalf("gap between scAccount=%d and scColorBase=%d", scAccount, scColorBase)
 	}
 }
+
+// barSize dead band: values between 0 (auto) and the floor are ignored —
+// the settings stepper must not produce sizes the resolver silently
+// discards. Also pins the auto-floor boundary itself.
+func TestBarSizeDeadBand(t *testing.T) {
+	t.Setenv("LOCALAPPDATA", t.TempDir())
+	cases := []struct {
+		barW, barH, wantW, wantH int32
+	}{
+		{0, 0, 340, 44},    // full auto
+		{100, 0, 340, 44},  // below width floor: ignored
+		{120, 0, 120, 44},  // width floor: honored
+		{0, 23, 340, 44},   // below height floor: ignored
+		{0, 24, 340, 24},   // height floor: honored
+		{340, 40, 340, 40}, // both honored
+	}
+	for _, c := range cases {
+		settingsMu.Lock()
+		activePrefs = settings{BarW: c.barW, BarH: c.barH, RefreshSecs: 5}
+		settingsMu.Unlock()
+		w, h := barSize(340, 44)
+		if w != c.wantW || h != c.wantH {
+			t.Errorf("barSize(barW=%d,barH=%d) = %d,%d want %d,%d", c.barW, c.barH, w, h, c.wantW, c.wantH)
+		}
+	}
+	settingsMu.Lock()
+	activePrefs = defaultSettings()
+	settingsMu.Unlock()
+}
+
+// Empty (0-byte) settings/theme files behave like missing files: defaults.
+func TestEmptyFilesFallBackToDefaults(t *testing.T) {
+	t.Setenv("LOCALAPPDATA", t.TempDir())
+	if err := os.MkdirAll(appDataDir(), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(settingsPath(), nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	loadSettings()
+	if got := getSettings(); got != defaultSettings() {
+		t.Fatalf("empty settings.json gave %+v, want defaults", got)
+	}
+	if err := os.WriteFile(themePath(), nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	loadTheme()
+	if v := c("windowBg"); v.v != themeDefaults["windowBg"] {
+		t.Fatalf("empty theme.json changed windowBg to %x", v.v)
+	}
+}
