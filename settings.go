@@ -167,6 +167,7 @@ func stepperRow(hdc uintptr, minus, plus int, label string, val string, y int32)
 			framePanel(hdc, b.rc, c("textBright").v)
 		}
 		drawText(hdc, setFontB, c("text").v, b.tx, b.rc.Left, b.rc.Top, b.rc.Right, b.rc.Bottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE)
+		setRect(b.id, b.rc)
 	}
 	drawText(hdc, setFontB, c("textBright").v, val, v.Left, v.Top, v.Right, v.Bottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE)
 	return y + 32
@@ -175,6 +176,7 @@ func stepperRow(hdc uintptr, minus, plus int, label string, val string, y int32)
 // toggleRow paints a checkbox-style toggle.
 func toggleRow(hdc uintptr, id int, label string, on bool, y int32) int32 {
 	box := RECT{20, y, 44, y + 24}
+	setRect(id, box)
 	fillPanel(hdc, box, c("panelAlt").v)
 	framePanel(hdc, box, c("border").v)
 	if on {
@@ -337,6 +339,7 @@ func handleSettingsClick(hwnd uintptr, id int) {
 		storeSettings(clampBar(s, s.BarW, s.BarH+4))
 	case scSetHome:
 		if hwndMain != 0 {
+			// Home = the HUD bar's top-left, not the settings window's.
 			r := windowRect(hwndMain)
 			setHomePosition(r.Left, r.Top)
 		}

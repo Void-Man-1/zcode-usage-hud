@@ -218,6 +218,11 @@ func sameRect(a, b RECT) bool {
 // style is gauges, taskbar strip otherwise. Pure - unit-tested.
 func standbyDimensions(taskbarH int32) (int32, int32) {
 	w := int32(240)
+	if currentStyle() == styleGauge {
+		// The strip must fit one full gauge row; taskbar height would
+		// clip the arc.
+		return w, gaugeRowHeight()
+	}
 	if taskbarH >= 30 && taskbarH <= 100 {
 		return w, taskbarH
 	}

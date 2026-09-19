@@ -25,7 +25,6 @@ func enterStandbyOrExpand() {
 		return
 	}
 	locked := currentSnapshotLocked()
-	logDiagnostic("standby-check locked=%t inStandby=%t collapsed=%t anim=%q", locked, inStandby, collapsed, anim.phase)
 	if locked && !inStandby {
 		inStandby = true
 		// Only the minimized bar runs the alarm; the expanded view is

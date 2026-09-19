@@ -53,7 +53,7 @@ func TestEaseInOutCubic(t *testing.T) {
 }
 
 func TestStandbyDimensions(t *testing.T) {
-	// Normal taskbar heights: strip matches the taskbar.
+	// Bars style (default): strip matches the taskbar.
 	for _, th := range []int32{30, 40, 48, 100} {
 		w, h := standbyDimensions(th)
 		if w != 240 || h != th {
@@ -67,4 +67,10 @@ func TestStandbyDimensions(t *testing.T) {
 			t.Errorf("standbyDimensions(%d) = %d,%d, want 240,40", th, w, h)
 		}
 	}
+	// Gauge style: the strip must fit a full gauge row, not the taskbar.
+	storeSettings(settings{AnimMs: 160, Style: int(styleGauge), Notifications: true, RefreshSecs: 5})
+	if _, h := standbyDimensions(40); h != gaugeRowHeight() {
+		t.Errorf("gauge-style standbyDimensions(40) height = %d, want %d", h, gaugeRowHeight())
+	}
+	storeSettings(defaultSettings())
 }

@@ -3646,7 +3646,10 @@ func paintCollapsed(hdc uintptr, rc RECT, s Snapshot, now time.Time) {
 	} else if len(previewBuckets) > 0 || len(previewPendings) > 0 {
 		if currentStyle() == styleGauge {
 			// Speedometer mode: all gauges in one horizontal line.
-			drawGaugeRow(hdc, previewBuckets, previewPendings, 10, 0, gearRc.Left-6, rc.Bottom, morphAlpha)
+			// The rect eases bars->gauges via startStyleMorph; the alpha
+			// here must track the same eased clock, not raw t, or the
+			// crossfade finishes visibly before the geometry lands.
+			drawGaugeRow(hdc, previewBuckets, previewPendings, 10, 0, gearRc.Left-6, rc.Bottom, easeInOutCubic(morphAlpha))
 		} else {
 			// Stacked rows: one full-width line per bucket or pending
 			// promotion grant — bars run the whole panel width since the
