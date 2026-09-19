@@ -18,16 +18,6 @@ const (
 	scNone = iota
 	scStyleBars
 	scStyleGauge
-	scColorWindowBg
-	scColorPanel
-	scColorBorder
-	scColorText
-	scColorTextMuted
-	scColorAccent
-	scColorBarFill
-	scColorOk
-	scColorWarn
-	scColorBad
 	scVoid
 	scAnimMinus
 	scAnimPlus
@@ -42,7 +32,23 @@ const (
 	scRefreshPlus
 	scCheckUpdates
 	scAccount
+
+	// Color swatches: one per themeKeys entry, id = scColorBase + index.
+	// Must stay LAST: chip ids allocate upward from here and must never
+	// collide with the fixed controls above. (They once started at 3 and
+	// overwrote scVoid+; every control below the grid then opened a color
+	// dialog instead of doing its job.)
+	scColorBase
 )
+
+// colorKeyFor maps a swatch control id to its theme key.
+func colorKeyFor(id int) (string, bool) {
+	i := id - scColorBase
+	if i < 0 || i >= len(themeKeys) {
+		return "", false
+	}
+	return themeKeys[i], true
+}
 
 var (
 	hwndSettings uintptr
@@ -79,7 +85,7 @@ func openSettingsOnUI() {
 	h, _, _ := procCreateWindowExW.Call(
 		0, uintptr(unsafe.Pointer(cls)), uintptr(unsafe.Pointer(name)),
 		uintptr(WS_POPUP|0x00C00000), // WS_POPUP|WS_CAPTION|WS_SYSMENU
-		100, 100, 560, 640, 0, 0, wc.HInstance, 0)
+		100, 100, 560, 1020, 0, 0, wc.HInstance, 0)
 	if h == 0 {
 		logDiagnostic("settings CreateWindowExW failed")
 		return
@@ -258,18 +264,32 @@ func paintSettings(hwnd uintptr) {
 	styleBtn(gaugeRc, scStyleGauge, "Speedometer gauges", s.Style == int(styleGauge))
 	y += 40
 
-	for _, row := range []struct {
-		id  int
-		key string
-		nm  string
-	}{{scColorWindowBg, "windowBg", "Window background"}, {scColorPanel, "panel", "Panels"}, {scColorBorder, "border", "Borders"},
-		{scColorText, "text", "Body text"}, {scColorTextMuted, "textMuted", "Muted text"}, {scColorAccent, "accent", "Accent"},
-		{scColorBarFill, "barFill", "Bar fill"}, {scColorOk, "ok", "OK state"}, {scColorWarn, "warn", "Warning state"},
-		{scColorBad, "bad", "Critical state"}} {
-		var sw RECT
-		y, sw = swatchRow(targetDC, row.id, row.nm, row.key, y)
-		setRect(row.id, sw)
+	// Color grid: every theme key, 6 chips per row, name under each.
+	// The hovered key's name repeats in a full-width status line so
+	// truncated labels stay readable.
+	const cols = 6
+	cw, ch := int32(78), int32(22)
+	gapX, gapY := int32(3), int32(16)
+	hoverKey := ""
+	for i, key := range themeKeys {
+		row, col := int32(i/cols), int32(i%cols)
+		rc := RECT{20 + col*(cw+gapX), y + row*(ch+gapY), 20 + col*(cw+gapX) + cw, y + row*(ch+gapY) + ch}
+		fillPanel(targetDC, rc, c(key).v)
+		framePanel(targetDC, rc, c("border").v)
+		id := scColorBase + i
+		if hoverGlow(id) {
+			framePanel(targetDC, rc, c("textBright").v)
+			hoverKey = key
+		}
+		drawText(targetDC, setFontS, c("textMuted").v, key, rc.Left, rc.Bottom+1, rc.Right, rc.Bottom+13, DT_CENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+		setRect(id, rc)
 	}
+	rows := (int32(len(themeKeys)) + cols - 1) / cols
+	y += rows*(ch+gapY) + 4
+	if hoverKey != "" {
+		drawText(targetDC, setFontB, c("text").v, hoverKey, 20, y, w-20, y+18, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
+	}
+	y += 20
 	y = buttonRow(targetDC, scVoid, "Return to the void (reset colors)", y, w, false)
 
 	y = sectionTitle(targetDC, "ANIMATION", y, w)
@@ -304,6 +324,15 @@ func paintSettings(hwnd uintptr) {
 // handleSettingsClick applies one control's action.
 func handleSettingsClick(hwnd uintptr, id int) {
 	s := getSettings()
+	// Color swatches: one id per themeKeys entry.
+	if key, ok := colorKeyFor(id); ok {
+		if v, ok := pickColorFor(hwnd, c(key).v); ok {
+			setThemeColor(key, v)
+			repaintAll()
+		}
+		procInvalidateRect.Call(hwnd, 0, 0)
+		return
+	}
 	switch id {
 	case scStyleBars, scStyleGauge:
 		want := styleBars
@@ -312,15 +341,6 @@ func handleSettingsClick(hwnd uintptr, id int) {
 		}
 		if displayStyle(s.Style) != want {
 			toggleDisplayStyle(want)
-		}
-	case scColorWindowBg, scColorPanel, scColorBorder, scColorText, scColorTextMuted,
-		scColorAccent, scColorBarFill, scColorOk, scColorWarn, scColorBad:
-		key := map[int]string{scColorWindowBg: "windowBg", scColorPanel: "panel", scColorBorder: "border",
-			scColorText: "text", scColorTextMuted: "textMuted", scColorAccent: "accent",
-			scColorBarFill: "barFill", scColorOk: "ok", scColorWarn: "warn", scColorBad: "bad"}[id]
-		if v, ok := pickColorFor(hwnd, c(key).v); ok {
-			setThemeColor(key, v)
-			repaintAll()
 		}
 	case scVoid:
 		resetTheme()

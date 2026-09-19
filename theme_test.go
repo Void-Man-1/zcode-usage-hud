@@ -212,3 +212,15 @@ func TestGaugeRowHeightFitsOneLine(t *testing.T) {
 		t.Fatal("gauge row must leave room for the arc + label")
 	}
 }
+
+// Settings control ids must never overlap the color-chip range: chips
+// allocate upward from scColorBase, which must stay above every fixed
+// control. (A collision once made the void button open a color dialog.)
+func TestSettingsIDsNoCollision(t *testing.T) {
+	if scColorBase <= scAccount {
+		t.Fatalf("scColorBase=%d must be greater than scAccount=%d", scColorBase, scAccount)
+	}
+	if scColorBase-1 != scAccount {
+		t.Fatalf("gap between scAccount=%d and scColorBase=%d", scAccount, scColorBase)
+	}
+}

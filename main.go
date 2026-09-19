@@ -3166,23 +3166,23 @@ func paint(hwnd uintptr) {
 	contentRight := rc.Right - margin
 
 	minRc, closeRc := titleButtonRectsFromClient(rc)
-	drawText(hdc, fontHeader, rgb(247, 248, 250), "ZCode Usage", margin, 7, minRc.Left-82, 39, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontHeader, c("textBright").v, "ZCode Usage", margin, 7, minRc.Left-82, 39, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 	versionRc := RECT{minRc.Left - 76, 11, minRc.Left - 12, 34}
-	fillPanel(hdc, versionRc, rgb(27, 29, 35))
-	framePanel(hdc, versionRc, rgb(42, 45, 54))
-	drawText(hdc, fontSmall, rgb(174, 179, 190), "v"+appVersion, versionRc.Left+4, versionRc.Top, versionRc.Right-4, versionRc.Bottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE)
+	fillPanel(hdc, versionRc, c("panelAlt").v)
+	framePanel(hdc, versionRc, c("border").v)
+	drawText(hdc, fontSmall, c("textDim").v, "v"+appVersion, versionRc.Left+4, versionRc.Top, versionRc.Right-4, versionRc.Bottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE)
 	line := RECT{0, 43, rc.Right, 44}
-	fillPanel(hdc, line, rgb(34, 36, 43))
+	fillPanel(hdc, line, c("divider").v)
 	if titleHover == 1 {
-		fillPanel(hdc, minRc, rgb(38, 38, 45))
+		fillPanel(hdc, minRc, c("hoverBg").v)
 	}
 	if titleHover == 2 {
-		fillPanel(hdc, closeRc, rgb(196, 57, 67))
+		fillPanel(hdc, closeRc, c("bad").v)
 	}
-	drawText(hdc, fontBody, rgb(210, 210, 219), "—", minRc.Left, minRc.Top, minRc.Right, minRc.Bottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE)
-	closeColor := rgb(210, 210, 219)
+	drawText(hdc, fontBody, c("title").v, "—", minRc.Left, minRc.Top, minRc.Right, minRc.Bottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE)
+	closeColor := c("title").v
 	if titleHover == 2 {
-		closeColor = rgb(255, 255, 255)
+		closeColor = c("hoverText").v
 	}
 	drawText(hdc, fontBody, closeColor, "×", closeRc.Left, closeRc.Top, closeRc.Right, closeRc.Bottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE)
 
@@ -3202,15 +3202,15 @@ func paint(hwnd uintptr) {
 		meta = "ZCode account not connected"
 	}
 	if meta != "" {
-		dotColor := rgb(111, 115, 126)
+		dotColor := c("textFaint").v
 		if s.Connected && s.SignedIn {
-			dotColor = rgb(91, 201, 128)
+			dotColor = c("ok").v
 		} else if s.Error != "" {
-			dotColor = rgb(222, 100, 105)
+			dotColor = c("badBright").v
 		}
 		dot := RECT{margin, 55, margin + 6, 61}
 		fillPanel(hdc, dot, dotColor)
-		drawText(hdc, fontSmall, rgb(170, 174, 186), meta, margin+13, 47, contentRight, 69, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+		drawText(hdc, fontSmall, c("textFaint").v, meta, margin+13, 47, contentRight, 69, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 	}
 
 	y := int32(76)
@@ -3220,21 +3220,21 @@ func paint(hwnd uintptr) {
 	}
 	if !s.Connected {
 		panel := RECT{margin, y, contentRight, y + 156}
-		fillPanel(hdc, panel, rgb(24, 24, 29))
-		drawText(hdc, fontSection, rgb(230, 230, 235), "CONNECT TO ZCODE", margin+14, y+12, contentRight-14, y+34, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
+		fillPanel(hdc, panel, c("panel").v)
+		drawText(hdc, fontSection, c("labelText").v, "CONNECT TO ZCODE", margin+14, y+12, contentRight-14, y+34, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
 		msg := s.Error
 		if msg == "" {
 			msg = "Not signed in yet — use the button below or the tray menu."
 		}
-		drawText(hdc, fontBody, rgb(207, 207, 214), msg, margin+14, y+42, contentRight-14, y+68, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
-		drawText(hdc, fontSmall, rgb(125, 125, 137), "Opens Z.AI login in your browser — choose Google there.", margin+14, y+72, contentRight-14, y+94, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
+		drawText(hdc, fontBody, c("text").v, msg, margin+14, y+42, contentRight-14, y+68, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+		drawText(hdc, fontSmall, c("textMuted").v, "Opens Z.AI login in your browser — choose Google there.", margin+14, y+72, contentRight-14, y+94, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
 		signinButtonRect = RECT{margin + 16, y + 102, margin + 330, y + 142}
-		fillPanel(hdc, signinButtonRect, rgb(47, 47, 57))
-		drawText(hdc, fontLabel, rgb(235, 235, 240), signinLabel, signinButtonRect.Left+8, signinButtonRect.Top, signinButtonRect.Right-8, signinButtonRect.Bottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+		fillPanel(hdc, signinButtonRect, c("signinBg").v)
+		drawText(hdc, fontLabel, c("labelText").v, signinLabel, signinButtonRect.Left+8, signinButtonRect.Top, signinButtonRect.Right-8, signinButtonRect.Bottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 	} else if !s.SignedIn {
 		panel := RECT{margin, y, contentRight, y + 196}
-		fillPanel(hdc, panel, rgb(24, 24, 29))
-		drawText(hdc, fontSection, rgb(230, 230, 235), "ZCODE SIGN-IN REQUIRED", margin+16, y+14, contentRight-16, y+36, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
+		fillPanel(hdc, panel, c("panel").v)
+		drawText(hdc, fontSection, c("labelText").v, "ZCODE SIGN-IN REQUIRED", margin+16, y+14, contentRight-16, y+36, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
 		msg := s.Error
 		if msg == "" {
 			if s.LoginPending {
@@ -3243,24 +3243,24 @@ func paint(hwnd uintptr) {
 				msg = "Not signed in yet — use the button below or the tray menu."
 			}
 		}
-		drawText(hdc, fontBody, rgb(207, 207, 214), msg, margin+16, y+44, contentRight-16, y+68, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
-		drawText(hdc, fontSmall, rgb(135, 135, 146), "New tokens are picked up automatically when done.", margin+16, y+74, contentRight-16, y+98, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+		drawText(hdc, fontBody, c("text").v, msg, margin+16, y+44, contentRight-16, y+68, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+		drawText(hdc, fontSmall, c("textFaint").v, "New tokens are picked up automatically when done.", margin+16, y+74, contentRight-16, y+98, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 		if s.QuotaNote != "" {
-			drawText(hdc, fontSmall, rgb(220, 125, 125), s.QuotaNote, margin+16, y+102, contentRight-16, y+124, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+			drawText(hdc, fontSmall, c("badBright").v, s.QuotaNote, margin+16, y+102, contentRight-16, y+124, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 		}
 		signinButtonRect = RECT{margin + 16, y + 132, margin + 330, y + 172}
-		fillPanel(hdc, signinButtonRect, rgb(47, 47, 57))
-		drawText(hdc, fontLabel, rgb(235, 235, 240), signinLabel, signinButtonRect.Left+8, signinButtonRect.Top, signinButtonRect.Right-8, signinButtonRect.Bottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+		fillPanel(hdc, signinButtonRect, c("signinBg").v)
+		drawText(hdc, fontLabel, c("labelText").v, signinLabel, signinButtonRect.Left+8, signinButtonRect.Top, signinButtonRect.Right-8, signinButtonRect.Bottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 	} else {
 		unlockAt, locked := computeUnlock(s.Balances, now)
 		status := RECT{margin, y, contentRight, y + 90}
-		fillPanel(hdc, status, rgb(22, 24, 29))
-		framePanel(hdc, status, rgb(35, 38, 46))
+		fillPanel(hdc, status, c("panelDeep").v)
+		framePanel(hdc, status, c("surfaceAlt").v)
 		if locked {
 			accent := RECT{status.Left, status.Top, status.Left + 4, status.Bottom}
-			fillPanel(hdc, accent, rgb(232, 167, 76))
-			drawText(hdc, fontSection, rgb(242, 182, 94), "TOKENS EXHAUSTED", margin+18, y+8, contentRight-170, y+30, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
-			drawText(hdc, fontSmall, rgb(159, 164, 176), "REFILLS IN", margin+190, y+8, contentRight-16, y+28, DT_RIGHT|DT_VCENTER|DT_SINGLELINE)
+			fillPanel(hdc, accent, c("warn").v)
+			drawText(hdc, fontSection, c("pctWarn").v, "TOKENS EXHAUSTED", margin+18, y+8, contentRight-170, y+30, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
+			drawText(hdc, fontSmall, c("textFaint").v, "REFILLS IN", margin+190, y+8, contentRight-16, y+28, DT_RIGHT|DT_VCENTER|DT_SINGLELINE)
 			countdown := durationClock(unlockAt.Sub(now))
 			unlockText := "Refills " + unlockAt.Format("Mon 02 Jan · 15:04:05") + " local"
 			if unlockAt.IsZero() {
@@ -3270,34 +3270,34 @@ func paint(hwnd uintptr) {
 				countdown = "Confirming refill…"
 				unlockText = "Waiting for fresh balance data"
 			}
-			drawText(hdc, fontCountdownSmall, rgb(248, 248, 250), countdown, margin+18, y+30, contentRight-16, y+68, DT_CENTER|DT_VCENTER|DT_SINGLELINE)
-			drawText(hdc, fontSmall, rgb(155, 160, 173), unlockText, margin+18, y+67, contentRight-16, y+88, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+			drawText(hdc, fontCountdownSmall, c("textBright").v, countdown, margin+18, y+30, contentRight-16, y+68, DT_CENTER|DT_VCENTER|DT_SINGLELINE)
+			drawText(hdc, fontSmall, c("textFaint").v, unlockText, margin+18, y+67, contentRight-16, y+88, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 		} else {
 			accent := RECT{status.Left, status.Top, status.Left + 4, status.Bottom}
-			fillPanel(hdc, accent, rgb(82, 193, 122))
+			fillPanel(hdc, accent, c("statusOk").v)
 			availableText := "AVAILABLE"
 			if len(s.Balances) == 0 {
 				availableText = "NO BUCKETS REPORTED"
 			}
-			drawText(hdc, fontSection, rgb(122, 220, 155), availableText, margin+18, y+11, contentRight-170, y+34, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
-			drawText(hdc, fontSmall, rgb(151, 157, 170), "SYNCED "+syncText(s.UpdatedAt), contentRight-170, y+11, contentRight-16, y+33, DT_RIGHT|DT_VCENTER|DT_SINGLELINE)
+			drawText(hdc, fontSection, c("pctOk").v, availableText, margin+18, y+11, contentRight-170, y+34, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
+			drawText(hdc, fontSmall, c("textFaint").v, "SYNCED "+syncText(s.UpdatedAt), contentRight-170, y+11, contentRight-16, y+33, DT_RIGHT|DT_VCENTER|DT_SINGLELINE)
 			refill := earliestRefill(s.Balances)
 			body := "Token buckets have remaining quota."
 			if !refill.IsZero() {
 				body = "Next recurring refill in " + durationClock(refill.Sub(now)) + " (" + refill.Format("15:04") + " local)."
 			}
-			drawText(hdc, fontBody, rgb(224, 227, 233), body, margin+18, y+38, contentRight-16, y+62, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+			drawText(hdc, fontBody, c("labelText").v, body, margin+18, y+38, contentRight-16, y+62, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 		}
 		y += 94
 
-		drawText(hdc, fontSection, rgb(194, 194, 203), "TOKEN BUCKETS", margin, y, contentRight, y+24, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
+		drawText(hdc, fontSection, c("title").v, "TOKEN BUCKETS", margin, y, contentRight, y+24, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
 		y += 30
 
 		if len(s.Balances) == 0 {
 			panel := RECT{margin, y, contentRight, y + 70}
-			fillPanel(hdc, panel, rgb(24, 24, 29))
-			drawText(hdc, fontBody, rgb(213, 213, 221), "No token buckets were returned for this account yet.", margin+14, y+12, contentRight-14, y+38, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
-			drawText(hdc, fontSmall, rgb(130, 130, 142), "Last sync: "+syncText(s.UpdatedAt), margin+14, y+40, contentRight-14, y+62, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
+			fillPanel(hdc, panel, c("panel").v)
+			drawText(hdc, fontBody, c("title").v, "No token buckets were returned for this account yet.", margin+14, y+12, contentRight-14, y+38, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+			drawText(hdc, fontSmall, c("textFaint").v, "Last sync: "+syncText(s.UpdatedAt), margin+14, y+40, contentRight-14, y+62, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
 			y += 82
 		} else {
 			for _, b := range s.Balances {
@@ -3308,7 +3308,7 @@ func paint(hwnd uintptr) {
 
 		if pend := pendingGrants(s, now); len(pend) > 0 {
 			y += 6
-			drawText(hdc, fontSection, rgb(194, 194, 203), "PROMO GRANTS · NOT SPENDABLE YET", margin, y, contentRight, y+24, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
+			drawText(hdc, fontSection, c("title").v, "PROMO GRANTS · NOT SPENDABLE YET", margin, y, contentRight, y+24, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
 			y += 30
 			for _, g := range pend {
 				drawPendingGrantCard(hdc, &rc, g, y, now)
@@ -3323,14 +3323,14 @@ func paint(hwnd uintptr) {
 		}
 		if statsBottom < rc.Bottom-30 {
 			stats := RECT{margin, statsTop, contentRight, statsBottom}
-			fillPanel(hdc, stats, rgb(24, 24, 29))
+			fillPanel(hdc, stats, c("panel").v)
 			drawStatsPanel(hdc, stats, s, now)
 			y = statsBottom + 8
 		}
 	}
 
 	footer := connectionFooter(s)
-	drawText(hdc, fontSmall, rgb(126, 132, 146), footer, margin, rc.Bottom-26, contentRight, rc.Bottom-6, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontSmall, c("textSub").v, footer, margin, rc.Bottom-26, contentRight, rc.Bottom-6, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 
 }
 
@@ -3476,19 +3476,19 @@ func checkPromoExpiry(s Snapshot) {
 // quota. Rendered next to the model name so the two are never confused.
 func bucketQualifier(b Balance) (string, uint32) {
 	if !isRecurringPeriod(b.Period) {
-		return "PROMO", rgb(96, 165, 250)
+		return "PROMO", c("accent").v
 	}
 	switch strings.ToLower(strings.TrimSpace(b.Period)) {
 	case "daily":
-		return "DAILY", rgb(150, 155, 168)
+		return "DAILY", c("textFaint").v
 	case "weekly":
-		return "WEEKLY", rgb(150, 155, 168)
+		return "WEEKLY", c("textFaint").v
 	case "monthly":
-		return "MONTHLY", rgb(150, 155, 168)
+		return "MONTHLY", c("textFaint").v
 	case "yearly", "annual":
-		return "YEARLY", rgb(150, 155, 168)
+		return "YEARLY", c("textFaint").v
 	}
-	return "QUOTA", rgb(150, 155, 168)
+	return "QUOTA", c("textFaint").v
 }
 
 // drawBucketRows renders the collapsed panel's stacked rows: one
@@ -3514,7 +3514,7 @@ func drawBucketRows(hdc uintptr, bs []Balance, pend []PendingGrant, left, top, r
 			break
 		}
 		if i == shown-1 && shown < total {
-			drawText(hdc, fontSmall, rgb(150, 155, 168), fmt.Sprintf("+%d more rows", total-shown), left, rowTop, right, rowBottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+			drawText(hdc, fontSmall, c("textFaint").v, fmt.Sprintf("+%d more rows", total-shown), left, rowTop, right, rowBottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 			continue
 		}
 		if i < len(bs) {
@@ -3527,18 +3527,18 @@ func drawBucketRows(hdc uintptr, bs []Balance, pend []PendingGrant, left, top, r
 
 func drawBucketRow(hdc uintptr, b Balance, left, right, rowTop, rowBottom int32) {
 	pct := remainingPct(b)
-	pctColor := rgb(151, 224, 169)
-	barColor := rgb(75, 170, 110)
+	pctColor := c("pctOk").v
+	barColor := c("bucketFillOk").v
 	if pct < 10 {
-		pctColor = rgb(240, 148, 126)
-		barColor = rgb(205, 75, 75)
+		pctColor = c("pctBad").v
+		barColor = c("barFillBad").v
 	} else if pct < 25 {
-		pctColor = rgb(242, 182, 94)
-		barColor = rgb(205, 157, 57)
+		pctColor = c("pctWarn").v
+		barColor = c("bucketFillWarn").v
 	}
 	qual, qualColor := bucketQualifier(b)
 	// Line 1: full model name left, quota kind right.
-	drawText(hdc, fontLabel, rgb(225, 228, 235), b.ShowName, left, rowTop, right-64, rowTop+16, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontLabel, c("labelText").v, b.ShowName, left, rowTop, right-64, rowTop+16, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 	drawText(hdc, fontSmall, qualColor, qual, right-60, rowTop, right, rowTop+16, DT_RIGHT|DT_VCENTER|DT_SINGLELINE)
 	// Line 2: full-width bar, remaining % right.
 	barTop := rowTop + 19
@@ -3546,7 +3546,7 @@ func drawBucketRow(hdc uintptr, b Balance, left, right, rowTop, rowBottom int32)
 	barRight := right - 52
 	if barRight > left {
 		bar := RECT{left, barTop, barRight, barBottom}
-		fillPanel(hdc, bar, rgb(43, 46, 55))
+		fillPanel(hdc, bar, c("barTrack").v)
 		fillW := int32(float64(bar.Right-bar.Left) * pct / 100)
 		if fillW > 0 {
 			fillPanel(hdc, RECT{bar.Left, bar.Top, bar.Left + fillW, bar.Bottom}, barColor)
@@ -3559,8 +3559,8 @@ func drawBucketRow(hdc uintptr, b Balance, left, right, rowTop, rowBottom int32)
 // second line carries an amber activation countdown and the grant size
 // instead of a usage bar.
 func drawPendingRow(hdc uintptr, g PendingGrant, left, right, rowTop, rowBottom int32) {
-	drawText(hdc, fontLabel, rgb(225, 228, 235), g.ShowName, left, rowTop, right-64, rowTop+16, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
-	drawText(hdc, fontSmall, rgb(96, 165, 250), "PROMO", right-60, rowTop, right, rowTop+16, DT_RIGHT|DT_VCENTER|DT_SINGLELINE)
+	drawText(hdc, fontLabel, c("labelText").v, g.ShowName, left, rowTop, right-64, rowTop+16, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontSmall, c("accent").v, "PROMO", right-60, rowTop, right, rowTop+16, DT_RIGHT|DT_VCENTER|DT_SINGLELINE)
 	status := "WAITING FOR ACTIVATION"
 	if !g.EffectiveAt.IsZero() {
 		if time.Now().Before(g.EffectiveAt) {
@@ -3569,21 +3569,21 @@ func drawPendingRow(hdc uintptr, g PendingGrant, left, right, rowTop, rowBottom 
 			status = "ACTIVATING…"
 		}
 	}
-	drawText(hdc, fontSmall, rgb(242, 182, 94), status, left, rowTop+19, right-100, rowBottom, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
-	drawText(hdc, fontSmall, rgb(242, 182, 94), formatInt64(g.GrantUnits), right-96, rowTop+19, right, rowBottom, DT_RIGHT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontSmall, c("pctWarn").v, status, left, rowTop+19, right-100, rowBottom, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontSmall, c("pctWarn").v, formatInt64(g.GrantUnits), right-96, rowTop+19, right, rowBottom, DT_RIGHT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 }
 
 func paintCollapsed(hdc uintptr, rc RECT, s Snapshot, now time.Time) {
 	minRc, closeRc := titleButtonRectsFromClient(rc)
 	if titleHover == 1 {
-		fillPanel(hdc, minRc, rgb(40, 40, 47))
+		fillPanel(hdc, minRc, c("hoverBg").v)
 	}
 	if titleHover == 2 {
-		fillPanel(hdc, closeRc, rgb(196, 57, 67))
+		fillPanel(hdc, closeRc, c("bad").v)
 	}
 	text := "—"
-	color := rgb(205, 205, 214)
-	accent := rgb(89, 89, 102)
+	color := c("text").v
+	accent := c("accentDim").v
 	var countdown time.Duration
 	hasCountdown := false
 	var previewBuckets []Balance
@@ -3594,7 +3594,7 @@ func paintCollapsed(hdc uintptr, rc RECT, s Snapshot, now time.Time) {
 		// Distinguish "no account yet" from "account ok but API unreachable".
 		if s.Error != "" {
 			text = "OFFLINE"
-			color = rgb(240, 148, 126)
+			color = c("pctBad").v
 		} else {
 			text = "SIGN IN"
 		}
@@ -3606,8 +3606,8 @@ func paintCollapsed(hdc uintptr, rc RECT, s Snapshot, now time.Time) {
 			if !hasCountdown {
 				text = "CHECKING REFILL"
 			}
-			color = rgb(248, 248, 250)
-			accent = rgb(232, 167, 76)
+			color = c("textBright").v
+			accent = c("warn").v
 		} else {
 			// Accent bar tracks the account-wide remaining share so a
 			// nearly-dry account reads as a warning even before the
@@ -3615,14 +3615,14 @@ func paintCollapsed(hdc uintptr, rc RECT, s Snapshot, now time.Time) {
 			pct := aggregateRemainingPct(s.Balances)
 			text = fmt.Sprintf("%.0f%% LEFT", pct)
 			if pct < 10 {
-				color = rgb(240, 148, 126)
-				accent = rgb(205, 75, 75)
+				color = c("pctBad").v
+				accent = c("barFillBad").v
 			} else if pct < 25 {
-				color = rgb(242, 182, 94)
-				accent = rgb(232, 167, 76)
+				color = c("pctWarn").v
+				accent = c("warn").v
 			} else {
-				color = rgb(151, 224, 169)
-				accent = rgb(90, 190, 121)
+				color = c("pctOk").v
+				accent = c("barFill").v
 			}
 			for _, b := range s.Balances {
 				if b.Total > 0 {
@@ -3659,18 +3659,18 @@ func paintCollapsed(hdc uintptr, rc RECT, s Snapshot, now time.Time) {
 	} else {
 		drawText(hdc, fontStatusCountdown, color, text, 8, 0, minRc.Left-6, rc.Bottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 	}
-	restoreColor := rgb(211, 211, 220)
+	restoreColor := c("btnGlyph").v
 	drawText(hdc, fontBody, restoreColor, "□", minRc.Left, minRc.Top, minRc.Right, minRc.Bottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE)
-	closeColor := rgb(211, 211, 220)
+	closeColor := c("btnGlyph").v
 	if titleHover == 2 {
-		closeColor = rgb(255, 255, 255)
+		closeColor = c("hoverText").v
 	}
 	drawText(hdc, fontBody, closeColor, "×", closeRc.Left, closeRc.Top, closeRc.Right, closeRc.Bottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE)
 	if collapsed {
-		gearColor := rgb(211, 211, 220)
+		gearColor := c("btnGlyph").v
 		if titleHover == 3 {
-			gearColor = rgb(255, 255, 255)
-			fillPanel(hdc, gearRc, rgb(40, 40, 47))
+			gearColor = c("hoverText").v
+			fillPanel(hdc, gearRc, c("hoverBg").v)
 		}
 		drawText(hdc, fontBody, gearColor, "⚙", gearRc.Left, gearRc.Top, gearRc.Right, gearRc.Bottom, DT_CENTER|DT_VCENTER|DT_SINGLELINE)
 	}
@@ -3692,16 +3692,16 @@ func drawStatsPanel(hdc uintptr, panel RECT, s Snapshot, now time.Time) {
 	left := panel.Left + 14
 	right := panel.Right - 14
 	mid := (left + right) / 2
-	framePanel(hdc, panel, rgb(35, 38, 46))
-	drawText(hdc, fontSection, rgb(211, 215, 224), "ACCOUNT · PLAN · TOKENS", left, panel.Top+8, right, panel.Top+30, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
+	framePanel(hdc, panel, c("surfaceAlt").v)
+	drawText(hdc, fontSection, c("text").v, "ACCOUNT · PLAN · TOKENS", left, panel.Top+8, right, panel.Top+30, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
 	separator := RECT{left, panel.Top + 34, right, panel.Top + 35}
-	fillPanel(hdc, separator, rgb(37, 40, 48))
+	fillPanel(hdc, separator, c("barTrack").v)
 	extraPlans := len(s.Plans) - 1
 	if extraPlans < 0 {
 		extraPlans = 0
 	}
 	divider := RECT{mid, panel.Top + 42, mid + 1, panel.Top + 134 + int32(extraPlans)*24}
-	fillPanel(hdc, divider, rgb(37, 40, 48))
+	fillPanel(hdc, divider, c("barTrack").v)
 
 	var totalGrant, totalUsed, totalLeft int64
 	for _, b := range s.Balances {
@@ -3756,8 +3756,8 @@ func drawStatsPanel(hdc uintptr, panel RECT, s Snapshot, now time.Time) {
 			planLine = "ended " + ap.EndsAt.Format("02 Jan 15:04")
 		}
 	}
-	drawText(hdc, fontSmall, rgb(165, 170, 183), "Plan expiry", left, row, left+112, row+22, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
-	drawText(hdc, fontBody, rgb(231, 233, 238), planLine, left+118, row, right, row+22, DT_RIGHT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontSmall, c("textSub").v, "Plan expiry", left, row, left+112, row+22, DT_LEFT|DT_VCENTER|DT_SINGLELINE)
+	drawText(hdc, fontBody, c("labelText").v, planLine, left+118, row, right, row+22, DT_RIGHT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 	row += 24
 	ap := s.activePlan()
 	for i := range s.Plans {
@@ -3787,8 +3787,8 @@ func drawStatsPanel(hdc uintptr, panel RECT, s Snapshot, now time.Time) {
 		if !p.StartsAt.IsZero() && now.Before(p.StartsAt) {
 			when = " · starts " + p.StartsAt.Format("02 Jan 15:04")
 		}
-		drawText(hdc, fontSmall, rgb(140, 145, 158), name, left, row, left+196, row+22, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
-		drawText(hdc, fontSmall, rgb(198, 202, 212), state+when, left+202, row, right, row+22, DT_RIGHT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+		drawText(hdc, fontSmall, c("textFaint").v, name, left, row, left+196, row+22, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+		drawText(hdc, fontSmall, c("textSub").v, state+when, left+202, row, right, row+22, DT_RIGHT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 		row += 24
 	}
 	// Paid-plan subscriptions (empty for Start-Plan-only accounts).
@@ -3807,8 +3807,8 @@ func drawStatsPanel(hdc uintptr, panel RECT, s Snapshot, now time.Time) {
 		}
 		subsLine = strings.Join(parts, "   ·   ")
 	}
-	drawText(hdc, fontSmall, rgb(165, 170, 183), "Subscription", left, row, left+112, row+22, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
-	drawText(hdc, fontBody, rgb(231, 233, 238), subsLine, left+118, row, right, row+22, DT_RIGHT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontSmall, c("textSub").v, "Subscription", left, row, left+112, row+22, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontBody, c("labelText").v, subsLine, left+118, row, right, row+22, DT_RIGHT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 	row += 24
 	srvLine := "—"
 	if !s.ServerTime.IsZero() {
@@ -3829,13 +3829,13 @@ func drawStatsPanel(hdc uintptr, panel RECT, s Snapshot, now time.Time) {
 		}
 		srvLine += "mid " + mid
 	}
-	drawText(hdc, fontSmall, rgb(140, 145, 158), srvLine, left, row, right, row+22, DT_RIGHT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontSmall, c("textFaint").v, srvLine, left, row, right, row+22, DT_RIGHT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 }
 
 func drawStatPair(hdc uintptr, left, right int32, label, value string, y int32) {
 	labelRight := left + 116
-	drawText(hdc, fontSmall, rgb(165, 170, 183), label, left, y, labelRight, y+22, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
-	drawText(hdc, fontBody, rgb(235, 237, 242), value, labelRight+4, y, right, y+22, DT_RIGHT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontSmall, c("textSub").v, label, left, y, labelRight, y+22, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontBody, c("signinText").v, value, labelRight+4, y, right, y+22, DT_RIGHT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 }
 
 func syncText(t time.Time) string {
@@ -3868,13 +3868,13 @@ func connectionFooter(s Snapshot) string {
 func drawBalanceCard(hdc uintptr, rc *RECT, b Balance, y int32, now time.Time) {
 	const margin int32 = 22
 	card := RECT{margin, y, rc.Right - margin, y + 134}
-	fillPanel(hdc, card, rgb(22, 24, 29))
-	framePanel(hdc, card, rgb(35, 38, 46))
+	fillPanel(hdc, card, c("panelDeep").v)
+	framePanel(hdc, card, c("surfaceAlt").v)
 	promo := !isRecurringPeriod(b.Period)
 	if promo {
 		// Blue accent marks the promotion pool, mirroring the pending
 		// grant cards, so promo and regular quota never look alike.
-		fillPanel(hdc, RECT{card.Left, card.Top, card.Left + 4, card.Bottom}, rgb(96, 165, 250))
+		fillPanel(hdc, RECT{card.Left, card.Top, card.Left + 4, card.Bottom}, c("accent").v)
 	}
 
 	used := balanceUsedPercent(b)
@@ -3889,26 +3889,26 @@ func drawBalanceCard(hdc uintptr, rc *RECT, b Balance, y int32, now time.Time) {
 	if promo {
 		title += " · PROMO"
 	}
-	drawText(hdc, fontLabel, rgb(235, 237, 242), title, card.Left+14, y+8, card.Right-220, y+32, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontLabel, c("signinText").v, title, card.Left+14, y+8, card.Right-220, y+32, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 	pct := fmt.Sprintf("%.0f%% used   ·   %.0f%% left", used, remaining)
-	drawText(hdc, fontSmall, rgb(185, 190, 202), pct, card.Right-225, y+8, card.Right-14, y+32, DT_RIGHT|DT_VCENTER|DT_SINGLELINE)
+	drawText(hdc, fontSmall, c("textSub").v, pct, card.Right-225, y+8, card.Right-14, y+32, DT_RIGHT|DT_VCENTER|DT_SINGLELINE)
 
 	bar := RECT{card.Left + 14, y + 36, card.Right - 14, y + 46}
-	fillPanel(hdc, bar, rgb(43, 46, 55))
+	fillPanel(hdc, bar, c("barTrack").v)
 	fillW := int32(float64(bar.Right-bar.Left) * used / 100)
 	if fillW > 0 {
-		color := rgb(75, 170, 110)
+		color := c("bucketFillOk").v
 		if used >= 90 {
-			color = rgb(205, 75, 75)
+			color = c("barFillBad").v
 		} else if used >= 75 {
-			color = rgb(205, 157, 57)
+			color = c("bucketFillWarn").v
 		}
 		fr := RECT{bar.Left, bar.Top, bar.Left + fillW, bar.Bottom}
 		fillPanel(hdc, fr, color)
 	}
 
 	nums := fmt.Sprintf("%s used   ·   %s left   ·   %s total", formatInt64(b.Used), formatInt64(b.Remaining), formatInt64(b.Total))
-	drawText(hdc, fontSmall, rgb(151, 157, 171), nums, card.Left+14, y+52, card.Right-14, y+72, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontSmall, c("textFaint").v, nums, card.Left+14, y+52, card.Right-14, y+72, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 	countdown := "—"
 	exact := "End time not reported"
 	if !b.PeriodEnd.IsZero() {
@@ -3927,16 +3927,16 @@ func drawBalanceCard(hdc uintptr, rc *RECT, b Balance, y int32, now time.Time) {
 			exact = "Expired " + b.PeriodEnd.Format("Mon 02 Jan 2006 15:04") + " — pool closed"
 		}
 	}
-	countdownColor := rgb(249, 250, 252)
+	countdownColor := c("textBright").v
 	if !isRecurringPeriod(b.Period) && !b.PeriodEnd.IsZero() {
 		if now.Before(b.PeriodEnd) {
-			countdownColor = rgb(242, 182, 94) // expiring pool: amber, not a refill
+			countdownColor = c("pctWarn").v // expiring pool: amber, not a refill
 		} else {
-			countdownColor = rgb(150, 150, 160)
+			countdownColor = c("textFaint").v
 		}
 	}
 	drawText(hdc, fontCountdownSmall, countdownColor, countdown, card.Left+14, y+68, card.Right-14, y+111, DT_CENTER|DT_VCENTER|DT_SINGLELINE)
-	drawText(hdc, fontSmall, rgb(154, 160, 174), exact, card.Left+14, y+110, card.Right-14, y+131, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontSmall, c("textFaint").v, exact, card.Left+14, y+110, card.Right-14, y+131, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 }
 
 // modelNames strips the "model:" prefix from capabilities for display.
@@ -3955,10 +3955,10 @@ func modelNames(caps []string) string {
 func drawPendingGrantCard(hdc uintptr, rc *RECT, g PendingGrant, y int32, now time.Time) {
 	const margin int32 = 22
 	card := RECT{margin, y, rc.Right - margin, y + 134}
-	fillPanel(hdc, card, rgb(22, 24, 29))
-	framePanel(hdc, card, rgb(35, 38, 46))
+	fillPanel(hdc, card, c("panelDeep").v)
+	framePanel(hdc, card, c("surfaceAlt").v)
 	accent := RECT{card.Left, card.Top, card.Left + 4, card.Bottom}
-	fillPanel(hdc, accent, rgb(96, 165, 250))
+	fillPanel(hdc, accent, c("accent").v)
 
 	title := strings.ToUpper(g.ShowName)
 	if pl := periodLabel(g.Period); pl != "" {
@@ -3967,14 +3967,14 @@ func drawPendingGrantCard(hdc uintptr, rc *RECT, g PendingGrant, y int32, now ti
 		title += " · TOKENS"
 	}
 	title += " · PROMO"
-	drawText(hdc, fontLabel, rgb(235, 237, 242), title, card.Left+14, y+8, card.Right-230, y+32, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
-	drawText(hdc, fontSmall, rgb(185, 190, 202), formatInt64(g.GrantUnits)+" TOKENS", card.Right-235, y+8, card.Right-14, y+32, DT_RIGHT|DT_VCENTER|DT_SINGLELINE)
+	drawText(hdc, fontLabel, c("signinText").v, title, card.Left+14, y+8, card.Right-230, y+32, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontSmall, c("textSub").v, formatInt64(g.GrantUnits)+" TOKENS", card.Right-235, y+8, card.Right-14, y+32, DT_RIGHT|DT_VCENTER|DT_SINGLELINE)
 
 	nums := fmt.Sprintf("Grant: %s tokens", formatInt64(g.GrantUnits))
 	if models := modelNames(g.Capabilities); models != "" {
 		nums += "   ·   models: " + models
 	}
-	drawText(hdc, fontSmall, rgb(151, 157, 171), nums, card.Left+14, y+36, card.Right-14, y+56, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontSmall, c("textFaint").v, nums, card.Left+14, y+36, card.Right-14, y+56, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 
 	countdown := "PENDING"
 	exact := "Grant received — waiting for Z.AI to schedule it"
@@ -3996,9 +3996,9 @@ func drawPendingGrantCard(hdc uintptr, rc *RECT, g PendingGrant, y int32, now ti
 	if g.PlanName != "" {
 		exact += "   ·   " + g.PlanName
 	}
-	drawText(hdc, fontCountdownSmall, rgb(249, 250, 252), countdown, card.Left+14, y+54, card.Right-14, y+97, DT_CENTER|DT_VCENTER|DT_SINGLELINE)
-	drawText(hdc, fontSmall, rgb(154, 160, 174), exact, card.Left+14, y+96, card.Right-14, y+117, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
-	drawText(hdc, fontSmall, rgb(125, 160, 220), "No usage yet — the pool appears above once it activates", card.Left+14, y+113, card.Right-14, y+131, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontCountdownSmall, c("textBright").v, countdown, card.Left+14, y+54, card.Right-14, y+97, DT_CENTER|DT_VCENTER|DT_SINGLELINE)
+	drawText(hdc, fontSmall, c("textFaint").v, exact, card.Left+14, y+96, card.Right-14, y+117, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
+	drawText(hdc, fontSmall, c("accentSoft").v, "No usage yet — the pool appears above once it activates", card.Left+14, y+113, card.Right-14, y+131, DT_CENTER|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS)
 }
 
 func durationClock(d time.Duration) string {

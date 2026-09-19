@@ -20,6 +20,9 @@ public class W32 {
 [W32]::SetProcessDPIAware() | Out-Null
 $exe = (Resolve-Path (Join-Path $PSScriptRoot '..\..\ZCode-Usage-HUD.exe')).Path
 if (-not (Test-Path $exe)) { Write-Output "FAIL exe missing: $exe"; exit 2 }
+# HUD_PROFILE redirects appdata so the audit measures the DEFAULT palette
+# even when a developer profile has theme.json overrides.
+if ($env:HUD_PROFILE) { $env:LOCALAPPDATA = $env:HUD_PROFILE }
 
 function Find-HudWindow([uint32]$targetPid) {
   $found = [IntPtr]::Zero
